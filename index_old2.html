@@ -246,73 +246,13 @@
   }
   tbody td{padding:9px 10px;border-bottom:1px solid var(--border);}
   tbody tr:hover{background:#F8FAFF;}
-
-  /* AUTOFILTERS (Excel-style column header filters) */
-  thead th.filterable{ position:sticky; top:0; background:var(--card); cursor:default; }
-  .th-content{ display:flex; align-items:center; gap:5px; user-select:none; }
-  .autofilter-btn{
-    border:none; background:transparent; cursor:pointer; padding:2px 4px;
-    border-radius:4px; color:var(--text-soft); font-size:10px; line-height:1;
-    display:inline-flex; align-items:center; justify-content:center;
-  }
-  .autofilter-btn:hover{ background:#EEF1F8; color:var(--scitum-blue); }
-  .autofilter-btn.active{ color:var(--scitum-blue); background:#E2ECFF; }
-  .autofilter-btn.active::after{
-    content:""; width:5px; height:5px; border-radius:50%;
-    background:var(--scitum-blue); margin-left:1px;
-  }
-  .autofilter-panel{
-    position:absolute; z-index:50; background:#fff;
-    border:1px solid var(--border); border-radius:10px;
-    box-shadow:0 10px 30px rgba(20,30,60,0.18);
-    width:220px; padding:10px; font-size:12.5px;
-    color:var(--text); text-transform:none; letter-spacing:normal; font-weight:400;
-  }
-  .autofilter-panel .af-search{
-    width:100%; padding:6px 8px; border:1px solid var(--border);
-    border-radius:7px; font-size:12px; margin-bottom:8px; box-sizing:border-box;
-  }
-  .autofilter-panel .af-actions{ display:flex; justify-content:space-between; margin-bottom:6px; }
-  .autofilter-panel .af-actions button{
-    border:none; background:transparent; color:var(--scitum-blue);
-    font-size:11px; font-weight:700; cursor:pointer; padding:2px 4px;
-  }
-  .autofilter-panel .af-actions button:hover{ text-decoration:underline; }
-  .autofilter-panel .af-list{
-    max-height:200px; overflow-y:auto;
-    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-    padding:6px 0; margin-bottom:8px;
-  }
-  .autofilter-panel .af-item{
-    display:flex; align-items:center; gap:7px; padding:4px 2px;
-    border-radius:5px; cursor:pointer;
-  }
-  .autofilter-panel .af-item:hover{ background:#F4F6FB; }
-  .autofilter-panel .af-item input{ cursor:pointer; }
-  .autofilter-panel .af-item label{
-    flex:1; cursor:pointer; overflow:hidden;
-    text-overflow:ellipsis; white-space:nowrap;
-  }
-  .autofilter-panel .af-item .af-count{ font-size:10.5px; color:var(--text-soft); }
-  .autofilter-panel .af-empty{ font-size:12px; color:var(--text-soft); padding:10px 4px; text-align:center; }
-  .autofilter-panel .af-footer{ display:flex; gap:8px; }
-  .autofilter-panel .af-footer button{
-    flex:1; border-radius:7px; padding:6px 0;
-    font-size:11.5px; font-weight:700; cursor:pointer; border:1px solid var(--border);
-  }
-  .autofilter-panel .af-apply{ background:var(--scitum-blue); color:#fff; border-color:var(--scitum-blue); }
-  .autofilter-panel .af-apply:hover{ opacity:.9; }
-  .autofilter-panel .af-clear{ background:#fff; color:var(--text-soft); }
-  .autofilter-panel .af-clear:hover{ border-color:var(--scitum-blue); color:var(--scitum-blue); }
-
-
   .tag{
     display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;
   }
   .tag.exitosa{background:var(--ok);}
   .tag.progreso{background:var(--info);}
   .tag.programar{background:var(--scitum-cyan);}
-  .tag.embarcar{background:#7D3C98;}
+  .tag.embarcar{background:#17A589;}
   .tag.transito{background:var(--warn);color:#3a2a00;}
   .tag.pendiente{background:var(--gray);}
   .tag.cancelada{background:#717D7E;}
@@ -528,14 +468,14 @@
     margin-left:auto;
   }
 </style>
-<link rel="icon" type="image/png" href="../../../SCITUM Identidad gráfica/simbolo-favicon-Color-sin-fondo.png">
+<link rel="icon" type="image/png" href="img/simbolo-favicon-Color-sin-fondo.png">
 </head>
 <body>
 <div class="wrap">
 
   <header>
     <div class="title">
-      <p><img src="../amx_st-white-header_10.png" width="200" heigh="200"></p>
+      <p><img src="img/Logo SCITUM 1_blanco.png" width="250" heigh="250"></p>
       <h1>🛰️ 17471 · AMX · Dashboard Estatus Migración</h1>    
       <!--<p>Avance global por sitio · Olas 1–5 · <span id="vigenciaDate">Vigencia: —</span></p>-->
     </div>
@@ -544,14 +484,14 @@
         <label class="btn" for="excelInput">📂 Cargar base de datos (Excel)</label>
         <input type="file" id="excelInput" accept=".xlsx,.xls,.csv">
         <!--<span class="filename" id="excelFileName">Usando datos de ejemplo</span>-->
-        <button class="reset-btn" id="resetDataBtn" title="Recargar desde ruta automática">↺ Recargar BD</button>
+        <button class="reset-btn" id="resetDataBtn" title="Volver a los datos originales">↺ Restaurar</button>
       </div>
       <div class="badge">
         <span>Fecha de corte</span>
         <strong id="cutoffDate">—</strong>
       </div>
       <div>
-        <img src="../../../SCITUM Identidad gráfica/Logo SCITUM 1_blanco.png" width="150" heigh="150">        
+        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">
       </div>
     </div>
   </header>
@@ -747,16 +687,8 @@
     <div class="table-scroll">
       <table>
         <thead>
-          <tr id="tableHeadRow">
-            <th class="filterable" data-col="tier"><div class="th-content"><span>Tier</span><button class="autofilter-btn" data-col="tier" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="tipo"><div class="th-content"><span>Tipo</span><button class="autofilter-btn" data-col="tipo" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="pais"><div class="th-content"><span>País</span><button class="autofilter-btn" data-col="pais" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="sigla"><div class="th-content"><span>Sigla</span><button class="autofilter-btn" data-col="sigla" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="localidad"><div class="th-content"><span>Localidad</span><button class="autofilter-btn" data-col="localidad" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="esquema"><div class="th-content"><span>Esquema</span><button class="autofilter-btn" data-col="esquema" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="fecha_propuesta"><div class="th-content"><span>Fecha prop.</span><button class="autofilter-btn" data-col="fecha_propuesta" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="estatus"><div class="th-content"><span>Estatus</span><button class="autofilter-btn" data-col="estatus" title="Filtrar">▾</button></div></th>
-            <th>Dependencia / Nota</th>
+          <tr>
+            <th>Tier</th><th>Tipo</th><th>País</th><th>Sigla</th><th>Localidad</th><th>Esquema</th><th>Fecha prop.</th><th>Estatus</th><th>Dependencia / Nota</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -837,17 +769,10 @@ let currentStatusFilter = 'all';  // filtro de estatus para la tabla
 let currentSearch = '';           // texto de búsqueda para la tabla
 let usingCustomData = false;
 
-// Autofiltros tipo Excel por columna de la tabla "Detalle de sitios"
-const FILTERABLE_COLUMNS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus'];
-let columnFilters = {};
-FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
-let openAutofilterCol = null;
-let autofilterOpenedAt = 0;
-
 const STATUS_COLORS = {
   'Exitosa': '#1FA97C',
   'Listo para programar': '#00AEEF',
-  'Listo para embarcar': '#7D3C98',
+  'Listo para embarcar': '#17A589',
   'Equipo en transito': '#F2A93B',
   'En preconfiguracion': '#4A6CF7',
   'Dependencia': '#E0483E',
@@ -1816,46 +1741,6 @@ function renderSlaDhl(filtered){
 // ============================================================
 // TABLE
 // ============================================================
-function getColumnDisplayValue(row, col){
-  if(col === 'tier') return (row.tier !== undefined && row.tier !== null && row.tier !== '') ? String(row.tier) : '—';
-  if(col === 'estatus') return STATUS_LABELS[row.estatus] || row.estatus || '—';
-  const v = row[col];
-  return (v !== undefined && v !== null && v !== '') ? String(v) : '—';
-}
-
-function applyColumnFilters(rows, excludeCol){
-  let out = rows;
-  FILTERABLE_COLUMNS.forEach(col=>{
-    if(col === excludeCol) return;
-    const sel = columnFilters[col];
-    if(sel === null) return;
-    out = out.filter(r => sel.has(getColumnDisplayValue(r, col)));
-  });
-  return out;
-}
-
-function updateAutofilterButtonStates(){
-  document.querySelectorAll('.autofilter-btn').forEach(btn=>{
-    const col = btn.dataset.col;
-    btn.classList.toggle('active', columnFilters[col] !== null);
-  });
-}
-
-function getPreColumnFilterRows(){
-  let rows = getFilteredData();
-  if(currentStatusFilter !== 'all') rows = rows.filter(r=>r.estatus===currentStatusFilter);
-  if(currentSearch){
-    const q = currentSearch.toLowerCase();
-    rows = rows.filter(r =>
-      (r.sigla||'').toLowerCase().includes(q) ||
-      (r.localidad||'').toLowerCase().includes(q) ||
-      (r.pais||'').toLowerCase().includes(q) ||
-      (r.tipo||'').toLowerCase().includes(q)
-    );
-  }
-  return rows;
-}
-
 function renderTable(filtered){
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -1870,9 +1755,6 @@ function renderTable(filtered){
       (r.tipo||'').toLowerCase().includes(q)
     );
   }
-  rows = applyColumnFilters(rows, null);
-  updateAutofilterButtonStates();
-
   if(rows.length === 0){
     tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No hay sitios que coincidan con los filtros actuales.</td></tr>';
     return;
@@ -1893,101 +1775,6 @@ function renderTable(filtered){
     tbody.appendChild(tr);
   });
 }
-
-// ============================================================
-// AUTOFILTROS DE COLUMNA (estilo Excel)
-// ============================================================
-function closeAutofilterPanel(){
-  const existing = document.querySelector('.autofilter-panel');
-  if(existing) existing.remove();
-  openAutofilterCol = null;
-}
-
-function openAutofilterPanel(col, btnEl){
-  if(openAutofilterCol === col){ closeAutofilterPanel(); return; }
-  closeAutofilterPanel();
-  openAutofilterCol = col;
-  autofilterOpenedAt = Date.now();
-
-  const baseRows = applyColumnFilters(getPreColumnFilterRows(), col);
-  const counts = {};
-  baseRows.forEach(r=>{
-    const v = getColumnDisplayValue(r, col);
-    counts[v] = (counts[v]||0) + 1;
-  });
-  const allValues = Object.keys(counts).sort((a,b)=> a.localeCompare(b, 'es', {numeric:true}));
-  const currentSelection = columnFilters[col] !== null ? new Set(columnFilters[col]) : new Set(allValues);
-
-  const panel = document.createElement('div');
-  panel.className = 'autofilter-panel';
-  panel.innerHTML = `
-    <input type="text" class="af-search" placeholder="Buscar...">
-    <div class="af-actions">
-      <button type="button" class="af-select-all">Seleccionar todo</button>
-      <button type="button" class="af-select-none">Ninguno</button>
-    </div>
-    <div class="af-list"></div>
-    <div class="af-footer">
-      <button type="button" class="af-clear">Limpiar</button>
-      <button type="button" class="af-apply">Aplicar</button>
-    </div>
-  `;
-  document.body.appendChild(panel);
-
-  const rect = btnEl.getBoundingClientRect();
-  const panelWidth = 220;
-  let left = rect.left + window.scrollX;
-  if(left + panelWidth > window.innerWidth - 10) left = window.innerWidth - panelWidth - 10;
-  panel.style.left = left + 'px';
-  panel.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-
-  const listEl = panel.querySelector('.af-list');
-  function renderList(filterText){
-    listEl.innerHTML = '';
-    const q = (filterText||'').toLowerCase();
-    const visible = allValues.filter(v => v.toLowerCase().includes(q));
-    if(visible.length === 0){ listEl.innerHTML = '<div class="af-empty">Sin coincidencias</div>'; return; }
-    visible.forEach(v=>{
-      const item = document.createElement('div');
-      item.className = 'af-item';
-      const cbId = 'af_' + col + '_' + v.replace(/[^a-zA-Z0-9]/g,'_');
-      item.innerHTML = `<input type="checkbox" id="${cbId}" ${currentSelection.has(v)?'checked':''}><label for="${cbId}">${v}</label><span class="af-count">${counts[v]}</span>`;
-      const cb = item.querySelector('input');
-      cb.addEventListener('change', ()=>{ if(cb.checked) currentSelection.add(v); else currentSelection.delete(v); });
-      listEl.appendChild(item);
-    });
-  }
-  renderList('');
-
-  panel.querySelector('.af-search').addEventListener('input', e=> renderList(e.target.value));
-  panel.querySelector('.af-select-all').addEventListener('click', ()=>{ allValues.forEach(v=>currentSelection.add(v)); renderList(panel.querySelector('.af-search').value); });
-  panel.querySelector('.af-select-none').addEventListener('click', ()=>{ currentSelection.clear(); renderList(panel.querySelector('.af-search').value); });
-  panel.querySelector('.af-clear').addEventListener('click', ()=>{ columnFilters[col]=null; closeAutofilterPanel(); renderTable(getFilteredData()); });
-  panel.querySelector('.af-apply').addEventListener('click', ()=>{
-    columnFilters[col] = (currentSelection.size === allValues.length) ? null : currentSelection;
-    closeAutofilterPanel();
-    renderTable(getFilteredData());
-  });
-  panel.addEventListener('click', e=> e.stopPropagation());
-}
-
-document.getElementById('tableHeadRow').addEventListener('click', (e)=>{
-  const btn = e.target.closest('.autofilter-btn');
-  if(!btn) return;
-  e.stopPropagation();
-  openAutofilterPanel(btn.dataset.col, btn);
-});
-
-document.addEventListener('click', (e)=>{
-  if(e.target.closest('.autofilter-panel') || e.target.closest('.autofilter-btn')) return;
-  closeAutofilterPanel();
-});
-window.addEventListener('scroll', (e)=>{
-  if(e.target && e.target.closest && e.target.closest('.autofilter-panel')) return;
-  if(Date.now() - autofilterOpenedAt < 250) return;
-  closeAutofilterPanel();
-}, true);
-window.addEventListener('resize', closeAutofilterPanel);
 
 // Order in which status filter buttons are displayed (excluding "Todos", added first)
 const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
@@ -2166,8 +1953,6 @@ function handleExcelFile(file){
       currentStatusFilter = 'all';
       currentSearch = '';
       manualRateOverride = null;
-      FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
-      closeAutofilterPanel();
       document.getElementById('manualRateInput').value = '';
       document.getElementById('searchBox').value = '';
 
@@ -2193,67 +1978,25 @@ document.getElementById('excelInput').addEventListener('change', (e)=>{
 });
 
 document.getElementById('resetDataBtn').addEventListener('click', ()=>{
-  // En modo autoload, "Restaurar" vuelve a cargar desde la ruta física
-  loadFromPath(BD_PATH);
+  DATA = ORIGINAL_DATA.slice();
+  usingCustomData = false;
+  activeTypes.clear();
+  currentStatusFilter = 'all';
+  currentSearch = '';
+  manualRateOverride = null;
+  document.getElementById('manualRateInput').value = '';
+  document.getElementById('searchBox').value = '';
+  safeSetText('excelFileName', 'Usando datos de ejemplo');
+  document.getElementById('uploadStatus').className = '';
+  document.getElementById('uploadStatus').textContent = '';
+  renderAll();
 });
 
 // ============================================================
-// CARGA AUTOMÁTICA DESDE RUTA FÍSICA
-// ============================================================
-// Ruta relativa al archivo HTML. Ajusta según tu estructura de carpetas.
-const BD_PATH = 'archivos/BD_Dashboard.xlsx';
-
-function loadFromPath(path){
-  showUploadStatus(`⏳ Cargando desde: ${path}...`, false);
-  fetch(path)
-    .then(res => {
-      if(!res.ok) throw new Error(`No se pudo acceder a "${path}" (${res.status})`);
-      return res.arrayBuffer();
-    })
-    .then(buffer => {
-      const workbook = XLSX.read(new Uint8Array(buffer), {type:'array', cellDates:true});
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonRows = XLSX.utils.sheet_to_json(sheet, {defval:'', raw:true});
-      const parsed = rowsFromSheetJson(jsonRows);
-      if(!parsed.length) throw new Error('El archivo no contiene filas reconocibles.');
-
-      DATA = parsed;
-      usingCustomData = true;
-      activeTypes.clear();
-      currentStatusFilter = 'all';
-      currentSearch = '';
-      manualRateOverride = null;
-      FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
-      closeAutofilterPanel();
-      document.getElementById('manualRateInput').value = '';
-      document.getElementById('searchBox').value = '';
-      safeSetText('excelFileName', path.split('/').pop());
-      showUploadStatus(`✅ Cargado automáticamente desde "${path}" · ${parsed.length} sitios`, false);
-      applyCurrentDateAsCutoff();
-      renderAll();
-    })
-    .catch(err => {
-      // Si no se puede leer la ruta, carga los datos embebidos y muestra aviso
-      DATA = ORIGINAL_DATA.slice();
-      usingCustomData = false;
-      activeTypes.clear();
-      currentStatusFilter = 'all';
-      currentSearch = '';
-      manualRateOverride = null;
-      FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
-      closeAutofilterPanel();
-      safeSetText('excelFileName', 'Datos embebidos (ruta no accesible)');
-      showUploadStatus(`⚠️ No se pudo cargar "${path}": ${err.message}. Usando datos embebidos.`, true);
-      applyCurrentDateAsCutoff();
-      renderAll();
-    });
-}
-
-// ============================================================
-// INITIAL RENDER — intenta cargar desde ruta física primero
+// INITIAL RENDER
 // ============================================================
 applyCurrentDateAsCutoff();
-loadFromPath(BD_PATH);
+renderAll();
 
 </script>
 </body>
