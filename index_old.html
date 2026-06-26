@@ -252,10 +252,8 @@
   .tag.exitosa{background:var(--ok);}
   .tag.progreso{background:var(--info);}
   .tag.programar{background:var(--scitum-cyan);}
-  .tag.embarcar{background:#17A589;}
   .tag.transito{background:var(--warn);color:#3a2a00;}
   .tag.pendiente{background:var(--gray);}
-  .tag.cancelada{background:#717D7E;}
   .tag.riesgo{background:var(--danger);}
 
   .tier-pill{
@@ -265,6 +263,130 @@
   .t0{background:#5B6478;} .t1{background:#0033A0;} .t2{background:#00AEEF;color:#06294f;} .t3{background:#A9B2C3;color:#1B2233;}
 
   .table-scroll{max-height:420px;overflow-y:auto;border-radius:10px;}
+
+  /* AUTOFILTERS (Excel-style column header filters) */
+  thead th.filterable{
+    position:sticky; top:0; background:var(--card);
+    cursor:default;
+  }
+  .th-content{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    user-select:none;
+  }
+  .autofilter-btn{
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    padding:2px 4px;
+    border-radius:4px;
+    color:var(--text-soft);
+    font-size:10px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .autofilter-btn:hover{background:#EEF1F8;color:var(--scitum-blue);}
+  .autofilter-btn.active{color:var(--scitum-blue);background:#E2ECFF;}
+  .autofilter-btn.active::after{
+    content:"";
+    width:5px;height:5px;border-radius:50%;
+    background:var(--scitum-blue);
+    margin-left:1px;
+  }
+
+  .autofilter-panel{
+    position:absolute;
+    z-index:50;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(20,30,60,0.18);
+    width:220px;
+    padding:10px;
+    font-size:12.5px;
+    color:var(--text);
+    text-transform:none;
+    letter-spacing:normal;
+    font-weight:400;
+  }
+  .autofilter-panel .af-search{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    font-size:12px;
+    margin-bottom:8px;
+  }
+  .autofilter-panel .af-actions{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .autofilter-panel .af-actions button{
+    border:none;
+    background:transparent;
+    color:var(--scitum-blue);
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .autofilter-panel .af-actions button:hover{text-decoration:underline;}
+  .autofilter-panel .af-list{
+    max-height:200px;
+    overflow-y:auto;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:6px 0;
+    margin-bottom:8px;
+  }
+  .autofilter-panel .af-item{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:4px 2px;
+    border-radius:5px;
+    cursor:pointer;
+  }
+  .autofilter-panel .af-item:hover{background:#F4F6FB;}
+  .autofilter-panel .af-item input{cursor:pointer;}
+  .autofilter-panel .af-item label{
+    flex:1;
+    cursor:pointer;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .autofilter-panel .af-item .af-count{
+    font-size:10.5px;
+    color:var(--text-soft);
+  }
+  .autofilter-panel .af-empty{
+    font-size:12px;
+    color:var(--text-soft);
+    padding:10px 4px;
+    text-align:center;
+  }
+  .autofilter-panel .af-footer{
+    display:flex;
+    gap:8px;
+  }
+  .autofilter-panel .af-footer button{
+    flex:1;
+    border-radius:7px;
+    padding:6px 0;
+    font-size:11.5px;
+    font-weight:700;
+    cursor:pointer;
+    border:1px solid var(--border);
+  }
+  .autofilter-panel .af-apply{background:var(--scitum-blue);color:#fff;border-color:var(--scitum-blue);}
+  .autofilter-panel .af-apply:hover{background:var(--scitum-blue-dark);}
+  .autofilter-panel .af-clear{background:#fff;color:var(--text-soft);}
+  .autofilter-panel .af-clear:hover{border-color:var(--scitum-blue);color:var(--scitum-blue);}
 
   .risk-card{
     border:1px solid var(--border);
@@ -277,28 +399,6 @@
   .risk-card .site{font-weight:700;font-size:13.5px;display:flex;justify-content:space-between;}
   .risk-card .reason{font-size:12.5px;color:var(--text-soft);margin-top:4px;}
   .risk-card .site .tag{font-size:10px;}
-
-  /* SLA DHL — Equipos en tránsito */
-  .sla-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
-    gap:10px;
-  }
-  .sla-card{
-    border-radius:10px;
-    padding:12px 14px;
-    border:1px solid transparent;
-  }
-  .sla-card.sla-verde  { background:#D5F5E3; border-color:#A9DFBF; color:#1E8449; }
-  .sla-card.sla-amarillo{ background:#FEF9E7; border-color:#F9E79F; color:#9A7D0A; }
-  .sla-card.sla-naranja { background:#FDEBD0; border-color:#FAD7A0; color:#A04000; }
-  .sla-card.sla-rojo   { background:#FADBD8; border-color:#F5B7B1; color:#922B21; }
-  .sla-card .sla-site  { font-weight:700; font-size:13px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; }
-  .sla-card .sla-meta  { font-size:11.5px; opacity:.85; line-height:1.6; }
-  .sla-card .sla-dias  { font-size:22px; font-weight:900; float:right; line-height:1; margin-left:8px; }
-  .sla-legend{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px; font-size:12px; }
-  .sla-legend span{ display:flex; align-items:center; gap:5px; }
-  .sla-legend i{ width:11px; height:11px; border-radius:3px; display:inline-block; }
 
   footer{
     text-align:center;
@@ -475,7 +575,7 @@
 
   <header>
     <div class="title">
-      <p><img src="img/Logo SCITUM 1_blanco.png" width="250" heigh="250"></p>
+      <p><img src="img/Logo SCITUM 1_blanco.png" width="200" heigh="200"></p>
       <h1>🛰️ 17471 · AMX · Dashboard Estatus Migración</h1>    
       <!--<p>Avance global por sitio · Olas 1–5 · <span id="vigenciaDate">Vigencia: —</span></p>-->
     </div>
@@ -499,6 +599,7 @@
   <div id="uploadStatus"></div>
 
   <!-- KPI ROW -->
+  <br>
   <div class="kpi-grid">
     <div class="kpi total">
       <div class="label">Sitios totales</div>
@@ -513,7 +614,7 @@
     <div class="kpi progreso">
       <div class="label">En progreso</div>
       <div class="value" id="kpiProgreso">—</div>
-      <div class="sub" id="kpiProgresoSub">Tránsito + Preconfig. + Listo</div>
+      <div class="sub">Tránsito + Preconfig. + Listo para programar</div>
     </div>
     <div class="kpi pendiente">
       <div class="label">No iniciado</div>
@@ -649,19 +750,6 @@
     </div>
   </div>
 
-  <!-- ROW: SLA DHL tránsito (ancho completo) -->
-  <div class="panel">
-    <h2><span class="dot" style="background:#F2A93B"></span> 📦 SLA DHL — Equipos en tránsito</h2>
-    <div class="desc">Sitios con estatus "Equipo en tránsito" monitoreados por días transcurridos desde la fecha de envío · SLA DHL: 7 días</div>
-    <div class="sla-legend">
-      <span><i style="background:#1E8449"></i> 1–3 días (en tiempo)</span>
-      <span><i style="background:#9A7D0A"></i> 4–5 días (por vencer)</span>
-      <span><i style="background:#A04000"></i> 6–7 días (en límite)</span>
-      <span><i style="background:#922B21"></i> 8+ días (SLA vencido)</span>
-    </div>
-    <div id="slaDhlList" class="sla-grid"></div>
-  </div>
-
   <!-- ROW: Pais + Riesgos -->
   <div class="grid">
     <div class="panel">
@@ -687,8 +775,16 @@
     <div class="table-scroll">
       <table>
         <thead>
-          <tr>
-            <th>Tier</th><th>Tipo</th><th>País</th><th>Sigla</th><th>Localidad</th><th>Esquema</th><th>Fecha prop.</th><th>Estatus</th><th>Dependencia / Nota</th>
+          <tr id="tableHeadRow">
+            <th class="filterable" data-col="tier"><div class="th-content"><span>Tier</span><button class="autofilter-btn" data-col="tier" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="tipo"><div class="th-content"><span>Tipo</span><button class="autofilter-btn" data-col="tipo" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="pais"><div class="th-content"><span>País</span><button class="autofilter-btn" data-col="pais" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="sigla"><div class="th-content"><span>Sigla</span><button class="autofilter-btn" data-col="sigla" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="localidad"><div class="th-content"><span>Localidad</span><button class="autofilter-btn" data-col="localidad" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="esquema"><div class="th-content"><span>Esquema</span><button class="autofilter-btn" data-col="esquema" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="fecha_propuesta"><div class="th-content"><span>Fecha prop.</span><button class="autofilter-btn" data-col="fecha_propuesta" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="estatus"><div class="th-content"><span>Estatus</span><button class="autofilter-btn" data-col="estatus" title="Filtrar">▾</button></div></th>
+            <th>Dependencia / Nota</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -758,7 +854,9 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 // ============================================================
 const ORIGINAL_DATA = JSON.parse(document.getElementById('dataJson').textContent);
 
-// Helper: evita errores si el usuario comentó/eliminó algún elemento opcional del header al personalizar
+// Helper robusto: algunas instalaciones personalizadas del dashboard ocultan/eliminan ciertos
+// elementos opcionales del header (ej. al insertar logos propios). Esta función evita que el
+// script se rompa si un id esperado no existe en el DOM.
 function safeSetText(id, text){
   const el = document.getElementById(id);
   if(el) el.textContent = text;
@@ -769,27 +867,31 @@ let currentStatusFilter = 'all';  // filtro de estatus para la tabla
 let currentSearch = '';           // texto de búsqueda para la tabla
 let usingCustomData = false;
 
+// Autofiltros tipo Excel por columna de la tabla "Detalle de sitios".
+// columnFilters[col] = Set de valores SELECCIONADOS para esa columna, o null si no hay filtro activo (= todos).
+const FILTERABLE_COLUMNS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus'];
+let columnFilters = {};
+FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
+let openAutofilterCol = null; // columna cuyo dropdown está actualmente abierto, o null
+let autofilterOpenedAt = 0;   // timestamp de apertura, usado para ignorar eventos de scroll sintéticos del navegador justo al abrir (auto-scroll into view)
+
 const STATUS_COLORS = {
   'Exitosa': '#1FA97C',
   'Listo para programar': '#00AEEF',
-  'Listo para embarcar': '#17A589',
   'Equipo en transito': '#F2A93B',
   'En preconfiguracion': '#4A6CF7',
   'Dependencia': '#E0483E',
-  'Impl. Cancelada': '#717D7E',
   'No iniciado': '#A9B2C3'
 };
 const STATUS_LABELS = {
   'Exitosa':'Exitosa',
   'Listo para programar':'Listo p/ programar',
-  'Listo para embarcar':'Listo p/ embarcar',
   'Equipo en transito':'En tránsito',
   'En preconfiguracion':'Preconfiguración',
   'Dependencia':'Dependencia (riesgo)',
-  'Impl. Cancelada':'Impl. Cancelada',
   'No iniciado':'No iniciado'
 };
-const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_ORDER = ['Exitosa','Listo para programar','Equipo en transito','En preconfiguracion','Dependencia','No iniciado'];
 
 // Required columns expected in an uploaded Excel/CSV
 const REQUIRED_COLS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus','fecha_envio','lote','dependencia'];
@@ -835,11 +937,9 @@ function statusTagClass(s){
   switch(s){
     case 'Exitosa': return 'exitosa';
     case 'Listo para programar': return 'programar';
-    case 'Listo para embarcar': return 'embarcar';
     case 'Equipo en transito': return 'transito';
     case 'En preconfiguracion': return 'progreso';
     case 'Dependencia': return 'riesgo';
-    case 'Impl. Cancelada': return 'cancelada';
     default: return 'pendiente';
   }
 }
@@ -899,8 +999,7 @@ function renderKPIs(filtered){
   const enTransito = byStatus['Equipo en transito']||0;
   const enPreconfig = byStatus['En preconfiguracion']||0;
   const listoProgramar = byStatus['Listo para programar']||0;
-  const listoEmbarcar = byStatus['Listo para embarcar']||0;
-  const enProgreso = enTransito + enPreconfig + listoProgramar + listoEmbarcar;
+  const enProgreso = enTransito + enPreconfig + listoProgramar;
   const noIniciado = byStatus['No iniciado']||0;
   const riesgo = byStatus['Dependencia']||0;
 
@@ -915,16 +1014,12 @@ function renderKPIs(filtered){
   }
 
   document.getElementById('kpiTotal').textContent = total;
-  safeSetText('kpiTotalSub', activeTypes.size>0 ? 'Filtrado por tipo de sitio' : 'En alcance del proyecto');
+  document.getElementById('kpiTotalSub').textContent = activeTypes.size>0 ? 'Filtrado por tipo de sitio' : 'En alcance del proyecto';
   document.getElementById('kpiExitosa').textContent = exitosa;
-  safeSetText('kpiExitosaPct', total>0 ? ((exitosa/total)*100).toFixed(1)+'% del total' : '—');
+  document.getElementById('kpiExitosaPct').textContent = total>0 ? ((exitosa/total)*100).toFixed(1)+'% del total' : '—';
   document.getElementById('kpiProgreso').textContent = enProgreso;
-  // Desglose dinámico del KPI "En progreso"
-  safeSetText('kpiProgresoSub',
-    `Tránsito(${enTransito}) + Preconfig.(${enPreconfig}) + Listo emb.(${listoEmbarcar}) + Listo prog.(${listoProgramar})`
-  );
   document.getElementById('kpiPendiente').textContent = noIniciado;
-  safeSetText('kpiPendientePct', total>0 ? ((noIniciado/total)*100).toFixed(1)+'% del total' : '—');
+  document.getElementById('kpiPendientePct').textContent = total>0 ? ((noIniciado/total)*100).toFixed(1)+'% del total' : '—';
   document.getElementById('kpiRiesgo').textContent = riesgo;
 
   if(lastSite){
@@ -1673,74 +1768,30 @@ function renderRiskList(filtered){
 }
 
 // ============================================================
-// SLA DHL — Equipos en tránsito
-// ============================================================
-function renderSlaDhl(filtered){
-  const container = document.getElementById('slaDhlList');
-  container.innerHTML = '';
-
-  // Only sites with "Equipo en transito" AND a parseable fecha_envio
-  const enTransito = filtered.filter(r => r.estatus === 'Equipo en transito' && r.fecha_envio);
-
-  if(enTransito.length === 0){
-    container.innerHTML = '<p style="color:var(--text-soft);font-size:13px;">No hay equipos en tránsito para este filtro.</p>';
-    return;
-  }
-
-  // Calculate days elapsed: compare calendar dates only (no hour offset)
-  const hoy = new Date();
-  const hoyMs = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-
-  const cards = enTransito.map(r => {
-    const dEnvio = parseFecha(r.fecha_envio);
-    let dias = null;
-    if(dEnvio){
-      const envioMs = Date.UTC(dEnvio.getFullYear(), dEnvio.getMonth(), dEnvio.getDate());
-      dias = Math.floor((hoyMs - envioMs) / 86400000);
-    }
-    return { ...r, dias };
-  })
-  // Sort: most critical (highest days) first, then unknown
-  .sort((a, b) => {
-    if(a.dias === null && b.dias === null) return 0;
-    if(a.dias === null) return 1;
-    if(b.dias === null) return -1;
-    return b.dias - a.dias;
-  });
-
-  cards.forEach(r => {
-    const card = document.createElement('div');
-
-    let cls = 'sla-verde';
-    let diasLabel = '—';
-    if(r.dias !== null){
-      diasLabel = r.dias + (r.dias === 1 ? ' día' : ' días');
-      if(r.dias >= 8)       cls = 'sla-rojo';
-      else if(r.dias >= 6)  cls = 'sla-naranja';
-      else if(r.dias >= 4)  cls = 'sla-amarillo';
-      else                  cls = 'sla-verde';
-    } else {
-      cls = 'sla-card'; // neutral if no date
-    }
-
-    card.className = `sla-card ${cls}`;
-    card.innerHTML = `
-      <div class="sla-site">
-        <span><strong>${r.sigla || r.localidad}</strong>${r.sigla && r.localidad ? ' — ' + r.localidad : ''}</span>
-        <span class="sla-dias">${r.dias !== null ? r.dias : '?'}</span>
-      </div>
-      <div class="sla-meta">
-        ${r.pais ? r.pais + ' · ' : ''}Tier ${r.tier || '—'} · ${r.tipo || '—'}<br>
-        Envío: ${r.fecha_envio || '—'}${r.lote ? ' · Lote: ' + r.lote : ''}
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-// ============================================================
 // TABLE
 // ============================================================
+function getColumnDisplayValue(row, col){
+  if(col === 'tier'){
+    return (row.tier !== undefined && row.tier !== null && row.tier !== '') ? String(row.tier) : '—';
+  }
+  if(col === 'estatus'){
+    return STATUS_LABELS[row.estatus] || row.estatus || '—';
+  }
+  const v = row[col];
+  return (v !== undefined && v !== null && v !== '') ? String(v) : '—';
+}
+
+function applyColumnFilters(rows, excludeCol){
+  let out = rows;
+  FILTERABLE_COLUMNS.forEach(col=>{
+    if(col === excludeCol) return; // skip the column whose own dropdown we're populating (Excel-style cascade)
+    const sel = columnFilters[col];
+    if(sel === null) return; // no filter active for this column
+    out = out.filter(r => sel.has(getColumnDisplayValue(r, col)));
+  });
+  return out;
+}
+
 function renderTable(filtered){
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -1755,6 +1806,10 @@ function renderTable(filtered){
       (r.tipo||'').toLowerCase().includes(q)
     );
   }
+  rows = applyColumnFilters(rows, null);
+
+  updateAutofilterButtonStates();
+
   if(rows.length === 0){
     tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No hay sitios que coincidan con los filtros actuales.</td></tr>';
     return;
@@ -1776,8 +1831,177 @@ function renderTable(filtered){
   });
 }
 
+// ============================================================
+// AUTOFILTROS DE COLUMNA (estilo Excel) — "Detalle de sitios"
+// ============================================================
+const COLUMN_LABELS_AF = {
+  tier:'Tier', tipo:'Tipo', pais:'País', sigla:'Sigla', localidad:'Localidad',
+  esquema:'Esquema', fecha_propuesta:'Fecha prop.', estatus:'Estatus'
+};
+
+// Marca con estilo "activo" los botones de embudo cuyas columnas tienen un filtro aplicado.
+function updateAutofilterButtonStates(){
+  document.querySelectorAll('.autofilter-btn').forEach(btn=>{
+    const col = btn.dataset.col;
+    btn.classList.toggle('active', columnFilters[col] !== null);
+  });
+}
+
+// Devuelve el dataset "pre-tabla" (mismo criterio que renderTable: tipo de sitio, estatus de la barra y búsqueda),
+// para calcular qué valores únicos mostrar en cada dropdown, en cascada con los demás autofiltros activos.
+function getPreColumnFilterRows(){
+  let rows = getFilteredData();
+  if(currentStatusFilter !== 'all') rows = rows.filter(r=>r.estatus===currentStatusFilter);
+  if(currentSearch){
+    const q = currentSearch.toLowerCase();
+    rows = rows.filter(r =>
+      (r.sigla||'').toLowerCase().includes(q) ||
+      (r.localidad||'').toLowerCase().includes(q) ||
+      (r.pais||'').toLowerCase().includes(q) ||
+      (r.tipo||'').toLowerCase().includes(q)
+    );
+  }
+  return rows;
+}
+
+function closeAutofilterPanel(){
+  const existing = document.querySelector('.autofilter-panel');
+  if(existing) existing.remove();
+  openAutofilterCol = null;
+}
+
+function openAutofilterPanel(col, btnEl){
+  // toggle: if this column's panel is already open, close it
+  if(openAutofilterCol === col){
+    closeAutofilterPanel();
+    return;
+  }
+  closeAutofilterPanel();
+  openAutofilterCol = col;
+  autofilterOpenedAt = Date.now();
+
+  // Values available for this column, given every OTHER active filter (Excel-style cascade)
+  const baseRows = applyColumnFilters(getPreColumnFilterRows(), col);
+  const counts = {};
+  baseRows.forEach(r=>{
+    const v = getColumnDisplayValue(r, col);
+    counts[v] = (counts[v]||0) + 1;
+  });
+  const allValues = Object.keys(counts).sort((a,b)=> a.localeCompare(b, 'es', {numeric:true}));
+
+  // currently selected set: if no filter active yet, treat as "all values selected"
+  const currentSelection = columnFilters[col] !== null ? new Set(columnFilters[col]) : new Set(allValues);
+
+  const panel = document.createElement('div');
+  panel.className = 'autofilter-panel';
+  panel.innerHTML = `
+    <input type="text" class="af-search" placeholder="Buscar...">
+    <div class="af-actions">
+      <button type="button" class="af-select-all">Seleccionar todo</button>
+      <button type="button" class="af-select-none">Ninguno</button>
+    </div>
+    <div class="af-list"></div>
+    <div class="af-footer">
+      <button type="button" class="af-clear">Limpiar</button>
+      <button type="button" class="af-apply">Aplicar</button>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  // Position panel under the clicked button
+  const rect = btnEl.getBoundingClientRect();
+  const panelWidth = 220;
+  let left = rect.left + window.scrollX;
+  if(left + panelWidth > window.innerWidth - 10){
+    left = window.innerWidth - panelWidth - 10;
+  }
+  panel.style.left = left + 'px';
+  panel.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+
+  const listEl = panel.querySelector('.af-list');
+
+  function renderList(filterText){
+    listEl.innerHTML = '';
+    const q = (filterText||'').toLowerCase();
+    const visibleValues = allValues.filter(v => v.toLowerCase().includes(q));
+    if(visibleValues.length === 0){
+      listEl.innerHTML = '<div class="af-empty">Sin coincidencias</div>';
+      return;
+    }
+    visibleValues.forEach(v=>{
+      const item = document.createElement('div');
+      item.className = 'af-item';
+      const checkboxId = 'af_' + col + '_' + v.replace(/[^a-zA-Z0-9]/g,'_');
+      item.innerHTML = `
+        <input type="checkbox" id="${checkboxId}" ${currentSelection.has(v) ? 'checked' : ''}>
+        <label for="${checkboxId}">${v}</label>
+        <span class="af-count">${counts[v]}</span>
+      `;
+      const checkbox = item.querySelector('input');
+      checkbox.addEventListener('change', ()=>{
+        if(checkbox.checked) currentSelection.add(v);
+        else currentSelection.delete(v);
+      });
+      listEl.appendChild(item);
+    });
+  }
+  renderList('');
+
+  panel.querySelector('.af-search').addEventListener('input', (e)=> renderList(e.target.value));
+  panel.querySelector('.af-select-all').addEventListener('click', ()=>{
+    allValues.forEach(v=>currentSelection.add(v));
+    renderList(panel.querySelector('.af-search').value);
+  });
+  panel.querySelector('.af-select-none').addEventListener('click', ()=>{
+    currentSelection.clear();
+    renderList(panel.querySelector('.af-search').value);
+  });
+  panel.querySelector('.af-clear').addEventListener('click', ()=>{
+    columnFilters[col] = null;
+    closeAutofilterPanel();
+    renderTable(getFilteredData());
+  });
+  panel.querySelector('.af-apply').addEventListener('click', ()=>{
+    // If everything is selected, treat as "no filter" (cleaner state, matches Excel behavior)
+    if(currentSelection.size === allValues.length){
+      columnFilters[col] = null;
+    } else {
+      columnFilters[col] = currentSelection;
+    }
+    closeAutofilterPanel();
+    renderTable(getFilteredData());
+  });
+
+  // Prevent clicks inside the panel from bubbling to the document close-handler
+  panel.addEventListener('click', (e)=> e.stopPropagation());
+}
+
+document.getElementById('tableHeadRow').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.autofilter-btn');
+  if(!btn) return;
+  e.stopPropagation();
+  openAutofilterPanel(btn.dataset.col, btn);
+});
+
+// Close any open autofilter dropdown when clicking elsewhere, scrolling, or resizing
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('.autofilter-panel') || e.target.closest('.autofilter-btn')) return;
+  closeAutofilterPanel();
+});
+window.addEventListener('scroll', (e)=>{
+  // Ignore scroll events originating from inside the autofilter panel itself (e.g. its internal value list)
+  if(e.target && e.target.closest && e.target.closest('.autofilter-panel')) return;
+  // Ignore scroll events firing in the first instants after opening — browsers/automation tools often
+  // auto-scroll an element into view as part of dispatching a click, which would otherwise immediately
+  // close the panel we just opened.
+  if(Date.now() - autofilterOpenedAt < 250) return;
+  closeAutofilterPanel();
+}, true);
+window.addEventListener('resize', closeAutofilterPanel);
+
 // Order in which status filter buttons are displayed (excluding "Todos", added first)
-const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Equipo en transito','En preconfiguracion','Dependencia','No iniciado'];
 
 function renderStatusFilterBar(filtered){
   const bar = document.getElementById('statusFilterBar');
@@ -1834,7 +2058,6 @@ function renderAll(){
   renderEsquemaChart(filtered);
   renderPaisChart(filtered);
   renderRiskList(filtered);
-  renderSlaDhl(filtered);
   renderStatusFilterBar(filtered);
   renderTable(filtered);
 
@@ -1893,8 +2116,8 @@ function formatDateLongEs(d){
 function applyCurrentDateAsCutoff(){
   const today = new Date();
   const formatted = formatDateLongEs(today);
-  document.getElementById('cutoffDate').textContent = formatted;
-  //document.getElementById('vigenciaDate').textContent = `Vigencia: ${formatted}`;
+  safeSetText('cutoffDate', formatted);
+  safeSetText('vigenciaDate', `Vigencia: ${formatted}`);
 }
 
 const DATE_FIELDS = new Set(['fecha_propuesta','fecha_envio']);
@@ -1953,6 +2176,8 @@ function handleExcelFile(file){
       currentStatusFilter = 'all';
       currentSearch = '';
       manualRateOverride = null;
+      FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
+      closeAutofilterPanel();
       document.getElementById('manualRateInput').value = '';
       document.getElementById('searchBox').value = '';
 
@@ -1984,6 +2209,8 @@ document.getElementById('resetDataBtn').addEventListener('click', ()=>{
   currentStatusFilter = 'all';
   currentSearch = '';
   manualRateOverride = null;
+  FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
+  closeAutofilterPanel();
   document.getElementById('manualRateInput').value = '';
   document.getElementById('searchBox').value = '';
   safeSetText('excelFileName', 'Usando datos de ejemplo');
