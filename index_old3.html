@@ -313,7 +313,6 @@
   .tag.progreso{background:var(--info);}
   .tag.programar{background:var(--scitum-cyan);}
   .tag.embarcar{background:#7D3C98;}
-  .tag.programada{background:#E67E22;}
   .tag.transito{background:var(--warn);color:#3a2a00;}
   .tag.pendiente{background:var(--gray);}
   .tag.cancelada{background:#717D7E;}
@@ -545,7 +544,7 @@
         <label class="btn" for="excelInput">📂 Cargar base de datos (Excel)</label>
         <input type="file" id="excelInput" accept=".xlsx,.xls,.csv">
         <!--<span class="filename" id="excelFileName">Usando datos de ejemplo</span>-->
-        <button class="reset-btn" id="resetDataBtn" title="Volver a los datos originales">↺ Restaurar</button>
+        <button class="reset-btn" id="resetDataBtn" title="Recargar desde ruta automática">↺ Recargar BD</button>
       </div>
       <div class="badge">
         <span>Fecha de corte</span>
@@ -560,7 +559,6 @@
   <div id="uploadStatus"></div>
 
   <!-- KPI ROW -->
-  <br><br>
   <div class="kpi-grid">
     <div class="kpi total">
       <div class="label">Sitios totales</div>
@@ -576,11 +574,6 @@
       <div class="label">En progreso</div>
       <div class="value" id="kpiProgreso">—</div>
       <div class="sub" id="kpiProgresoSub">Tránsito + Preconfig. + Listo</div>
-    </div>
-    <div class="kpi" style="border-top:3px solid #E67E22;">
-      <div class="label">Programadas</div>
-      <div class="value" id="kpiProgramada" style="color:#E67E22;">—</div>
-      <div class="sub" id="kpiProgramadaSub" style="color:#E67E22;">—</div>
     </div>
     <div class="kpi pendiente">
       <div class="label">No iniciado</div>
@@ -855,7 +848,6 @@ const STATUS_COLORS = {
   'Exitosa': '#1FA97C',
   'Listo para programar': '#00AEEF',
   'Listo para embarcar': '#7D3C98',
-  'Programada': '#E67E22',
   'Equipo en transito': '#F2A93B',
   'En preconfiguracion': '#4A6CF7',
   'Dependencia': '#E0483E',
@@ -866,14 +858,13 @@ const STATUS_LABELS = {
   'Exitosa':'Exitosa',
   'Listo para programar':'Listo p/ programar',
   'Listo para embarcar':'Listo p/ embarcar',
-  'Programada':'Programada',
   'Equipo en transito':'En tránsito',
   'En preconfiguracion':'Preconfiguración',
   'Dependencia':'Dependencia (riesgo)',
   'Impl. Cancelada':'Impl. Cancelada',
   'No iniciado':'No iniciado'
 };
-const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
 
 // Required columns expected in an uploaded Excel/CSV
 const REQUIRED_COLS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus','fecha_envio','lote','dependencia'];
@@ -896,25 +887,7 @@ function getFilteredData(){
 }
 
 function destroyChart(key){
-  if(charts[key]){
-    charts[key].destroy();
-    charts[key] = null;
-  }
-  // Replace the canvas element entirely to eliminate any residual animation frames
-  // that Chart.js might still have queued, which can cause visual artifacts.
-  const canvasId = {
-    trend:'trendChart', donut:'statusDonut', tier:'tierChart',
-    tipo:'tipoChart', esquema:'esquemaChart', pais:'paisChart', projection:'projectionChart'
-  }[key];
-  if(canvasId){
-    const canvas = document.getElementById(canvasId);
-    if(canvas && canvas.parentNode){
-      const newCanvas = document.createElement('canvas');
-      newCanvas.id = canvas.id;
-      newCanvas.height = canvas.getAttribute('height') || canvas.height;
-      canvas.parentNode.replaceChild(newCanvas, canvas);
-    }
-  }
+  if(charts[key]){ charts[key].destroy(); charts[key] = null; }
 }
 
 const monthMap = {
@@ -938,7 +911,6 @@ function statusTagClass(s){
     case 'Exitosa': return 'exitosa';
     case 'Listo para programar': return 'programar';
     case 'Listo para embarcar': return 'embarcar';
-    case 'Programada': return 'programada';
     case 'Equipo en transito': return 'transito';
     case 'En preconfiguracion': return 'progreso';
     case 'Dependencia': return 'riesgo';
@@ -1003,7 +975,6 @@ function renderKPIs(filtered){
   const enPreconfig = byStatus['En preconfiguracion']||0;
   const listoProgramar = byStatus['Listo para programar']||0;
   const listoEmbarcar = byStatus['Listo para embarcar']||0;
-  const programada = byStatus['Programada']||0;
   const enProgreso = enTransito + enPreconfig + listoProgramar + listoEmbarcar;
   const noIniciado = byStatus['No iniciado']||0;
   const riesgo = byStatus['Dependencia']||0;
@@ -1023,21 +994,20 @@ function renderKPIs(filtered){
   document.getElementById('kpiExitosa').textContent = exitosa;
   safeSetText('kpiExitosaPct', total>0 ? ((exitosa/total)*100).toFixed(1)+'% del total' : '—');
   document.getElementById('kpiProgreso').textContent = enProgreso;
+  // Desglose dinámico del KPI "En progreso"
   safeSetText('kpiProgresoSub',
     `Tránsito(${enTransito}) + Preconfig.(${enPreconfig}) + Listo emb.(${listoEmbarcar}) + Listo prog.(${listoProgramar})`
   );
   document.getElementById('kpiPendiente').textContent = noIniciado;
   safeSetText('kpiPendientePct', total>0 ? ((noIniciado/total)*100).toFixed(1)+'% del total' : '—');
   document.getElementById('kpiRiesgo').textContent = riesgo;
-  document.getElementById('kpiProgramada').textContent = programada;
-  safeSetText('kpiProgramadaSub', total>0 ? ((programada/total)*100).toFixed(1)+'% del total' : '—');
 
   if(lastSite){
-    safeSetText('kpiLastSite', lastSite.sigla || lastSite.localidad);
-    safeSetText('kpiLastSiteDate', lastSite.fecha_propuesta);
+    document.getElementById('kpiLastSite').textContent = lastSite.sigla || lastSite.localidad;
+    document.getElementById('kpiLastSiteDate').textContent = lastSite.fecha_propuesta;
   } else {
-    safeSetText('kpiLastSite', '—');
-    safeSetText('kpiLastSiteDate', 'sin migraciones exitosas con fecha');
+    document.getElementById('kpiLastSite').textContent = '—';
+    document.getElementById('kpiLastSiteDate').textContent = 'sin migraciones exitosas con fecha';
   }
 
   return {total, byStatus};
@@ -1097,7 +1067,6 @@ function renderStatusDonut(filtered, total, byStatus){
       }]
     },
     options:{
-      animation: false,
       plugins:{
         legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, padding:12}},
         tooltip:{callbacks:{label:(ctx)=>` ${ctx.label}: ${ctx.parsed} sitios (${(ctx.parsed/total*100).toFixed(1)}%)`}},
@@ -1695,40 +1664,25 @@ function renderEsquemaChart(filtered){
   const byEsq = countBy(filtered, 'esquema');
   const esqTotal = filtered.length;
 
-  const ESQ_COLORS = { 'HA':'#0033A0', 'Stand Alone':'#00AEEF' };
-  const DEFAULT_COLORS = ['#F2A93B','#4A6CF7','#717D7E','#E0483E'];
-  const ORDER = ['HA','Stand Alone'];
-  const allKeys = Object.keys(byEsq);
-  const orderedKeys = [
-    ...ORDER.filter(k => allKeys.includes(k)),
-    ...allKeys.filter(k => !ORDER.includes(k)).sort()
-  ];
-
-  const labels = orderedKeys;
-  const data   = orderedKeys.map(k => byEsq[k]);
-  const colors = orderedKeys.map((k, i) => ESQ_COLORS[k] || DEFAULT_COLORS[i % DEFAULT_COLORS.length]);
-
   charts.esquema = new Chart(ctx, {
-    type:'doughnut',
+    type:'pie',
     data:{
-      labels,
-      datasets:[{ data, backgroundColor: colors, borderWidth:2, borderColor:'#fff' }]
+      labels: Object.keys(byEsq),
+      datasets:[{
+        data: Object.values(byEsq),
+        backgroundColor:['#0033A0','#8A93A6','#00AEEF','#F2A93B'],
+        borderWidth:2, borderColor:'#fff'
+      }]
     },
     options:{
-      animation: false,
-      cutout:'55%',
       plugins:{
-        legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:11}, padding:10 } },
-        tooltip:{ callbacks:{ label:(c)=> ` ${c.label}: ${c.parsed} (${(c.parsed/esqTotal*100).toFixed(1)}%)` } },
+        legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}},
+        tooltip:{callbacks:{label:(ctx)=>` ${ctx.label}: ${ctx.parsed} (${(ctx.parsed/esqTotal*100).toFixed(1)}%)`}},
         datalabels:{
           color:'#fff',
-          font:{ weight:'700', size:12 },
-          formatter:(value)=>{
-            const pct = (value/esqTotal*100).toFixed(0);
-            return `${value}\n${pct}%`;
-          },
-          textAlign:'center',
-          display: ctx => ctx.dataset.data[ctx.dataIndex] / esqTotal > 0.05
+          font:{weight:'700', size:13},
+          formatter:(value)=> `${value}\n${(value/esqTotal*100).toFixed(0)}%`,
+          textAlign:'center'
         }
       }
     }
@@ -2036,7 +1990,7 @@ window.addEventListener('scroll', (e)=>{
 window.addEventListener('resize', closeAutofilterPanel);
 
 // Order in which status filter buttons are displayed (excluding "Todos", added first)
-const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
 
 function renderStatusFilterBar(filtered){
   const bar = document.getElementById('statusFilterBar');
@@ -2239,14 +2193,15 @@ document.getElementById('excelInput').addEventListener('change', (e)=>{
 });
 
 document.getElementById('resetDataBtn').addEventListener('click', ()=>{
-  // Recargar desde la ruta física
+  // En modo autoload, "Restaurar" vuelve a cargar desde la ruta física
   loadFromPath(BD_PATH);
 });
 
 // ============================================================
 // CARGA AUTOMÁTICA DESDE RUTA FÍSICA
 // ============================================================
-const BD_PATH = 'archivos xls/archivo_bd.xlsx';
+// Ruta relativa al archivo HTML. Ajusta según tu estructura de carpetas.
+const BD_PATH = 'archivos/BD_Dashboard.xlsx';
 
 function loadFromPath(path){
   showUploadStatus(`⏳ Cargando desde: ${path}...`, false);
@@ -2261,6 +2216,7 @@ function loadFromPath(path){
       const jsonRows = XLSX.utils.sheet_to_json(sheet, {defval:'', raw:true});
       const parsed = rowsFromSheetJson(jsonRows);
       if(!parsed.length) throw new Error('El archivo no contiene filas reconocibles.');
+
       DATA = parsed;
       usingCustomData = true;
       activeTypes.clear();
@@ -2277,6 +2233,7 @@ function loadFromPath(path){
       renderAll();
     })
     .catch(err => {
+      // Si no se puede leer la ruta, carga los datos embebidos y muestra aviso
       DATA = ORIGINAL_DATA.slice();
       usingCustomData = false;
       activeTypes.clear();
