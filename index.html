@@ -560,7 +560,6 @@
   <div id="uploadStatus"></div>
 
   <!-- KPI ROW -->
-  <br><br>
   <div class="kpi-grid">
     <div class="kpi total">
       <div class="label">Sitios totales</div>
@@ -763,6 +762,7 @@
             <th class="filterable" data-col="esquema"><div class="th-content"><span>Esquema</span><button class="autofilter-btn" data-col="esquema" title="Filtrar">▾</button></div></th>
             <th class="filterable" data-col="fecha_propuesta"><div class="th-content"><span>Fecha prop.</span><button class="autofilter-btn" data-col="fecha_propuesta" title="Filtrar">▾</button></div></th>
             <th class="filterable" data-col="estatus"><div class="th-content"><span>Estatus</span><button class="autofilter-btn" data-col="estatus" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="enlace_telmex"><div class="th-content"><span>Enlace Telmex</span><button class="autofilter-btn" data-col="enlace_telmex" title="Filtrar">▾</button></div></th>
             <th>Dependencia / Nota</th>
           </tr>
         </thead>
@@ -845,7 +845,7 @@ let currentSearch = '';           // texto de búsqueda para la tabla
 let usingCustomData = false;
 
 // Autofiltros tipo Excel por columna de la tabla "Detalle de sitios"
-const FILTERABLE_COLUMNS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus'];
+const FILTERABLE_COLUMNS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus','enlace_telmex'];
 let columnFilters = {};
 FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
 let openAutofilterCol = null;
@@ -1896,7 +1896,8 @@ function getPreColumnFilterRows(){
       (r.sigla||'').toLowerCase().includes(q) ||
       (r.localidad||'').toLowerCase().includes(q) ||
       (r.pais||'').toLowerCase().includes(q) ||
-      (r.tipo||'').toLowerCase().includes(q)
+      (r.tipo||'').toLowerCase().includes(q) ||
+      (r.enlace_telmex||'').toLowerCase().includes(q)
     );
   }
   return rows;
@@ -1913,14 +1914,15 @@ function renderTable(filtered){
       (r.sigla||'').toLowerCase().includes(q) ||
       (r.localidad||'').toLowerCase().includes(q) ||
       (r.pais||'').toLowerCase().includes(q) ||
-      (r.tipo||'').toLowerCase().includes(q)
+      (r.tipo||'').toLowerCase().includes(q) ||
+      (r.enlace_telmex||'').toLowerCase().includes(q)
     );
   }
   rows = applyColumnFilters(rows, null);
   updateAutofilterButtonStates();
 
   if(rows.length === 0){
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No hay sitios que coincidan con los filtros actuales.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-msg">No hay sitios que coincidan con los filtros actuales.</td></tr>';
     return;
   }
   rows.forEach(r=>{
@@ -1934,6 +1936,7 @@ function renderTable(filtered){
       <td>${r.esquema||'—'}</td>
       <td>${r.fecha_propuesta||'—'}</td>
       <td><span class="tag ${statusTagClass(r.estatus)}">${STATUS_LABELS[r.estatus]||r.estatus||'—'}</span></td>
+      <td style="font-size:12px;color:#5B6478;">${r.enlace_telmex||'—'}</td>
       <td style="font-size:12px;color:#5B6478;">${r.dependencia||''}</td>
     `;
     tbody.appendChild(tr);
@@ -2128,7 +2131,8 @@ const HEADER_ALIASES = {
   'estatus':'estatus', 'estatus_ventana':'estatus',
   'fecha_envio':'fecha_envio', 'fecha_de_envio':'fecha_envio',
   'lote':'lote', 'lote_envio':'lote',
-  'dependencia':'dependencia', 'dependencias':'dependencia'
+  'dependencia':'dependencia', 'dependencias':'dependencia',
+  'enlace_telmex':'enlace_telmex', 'enlace':'enlace_telmex'
 };
 
 const MONTH_ABBR_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -2168,7 +2172,7 @@ function rowsFromSheetJson(jsonRows){
   });
 
   return jsonRows.map(raw=>{
-    const out = {tier:'',tipo:'',pais:'',sigla:'',localidad:'',esquema:'',fecha_propuesta:'',estatus:'',fecha_envio:'',lote:'',dependencia:''};
+    const out = {tier:'',tipo:'',pais:'',sigla:'',localidad:'',esquema:'',fecha_propuesta:'',estatus:'',fecha_envio:'',lote:'',dependencia:'',enlace_telmex:''};
     Object.keys(raw).forEach(k=>{
       const canon = keyMap[k];
       if(canon){
@@ -2246,7 +2250,7 @@ document.getElementById('resetDataBtn').addEventListener('click', ()=>{
 // ============================================================
 // CARGA AUTOMÁTICA DESDE RUTA FÍSICA
 // ============================================================
-const BD_PATH = 'archivos/archivo_bd.xlsx';
+const BD_PATH = 'archivos/BD_Dashboard.xlsx';
 
 function loadFromPath(path){
   showUploadStatus(`⏳ Cargando desde: ${path}...`, false);
