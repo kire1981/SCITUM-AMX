@@ -327,7 +327,6 @@
   .tag.transito{background:var(--warn);color:#3a2a00;}
   .tag.pendiente{background:var(--gray);}
   .tag.cancelada{background:#717D7E;}
-  .tag.fallida{background:#C0392B;}
   .tag.riesgo{background:var(--danger);}
 
   .tier-pill{
@@ -379,64 +378,6 @@
     margin-top:24px;
     padding-bottom:10px;
   }
-
-  .btn-pdf{
-    background:#C0392B;
-    color:#fff;
-    border:none;
-    border-radius:8px;
-    padding:8px 16px;
-    font-size:12.5px;
-    font-weight:700;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    transition:.15s;
-  }
-  .btn-pdf:hover{background:#a93226;}
-  .btn-pdf:disabled{background:#aaa;cursor:not-allowed;}
-
-  /* Sección resultado simulación */
-  #simResultPanel{
-    background:#FFF8EE;
-    border:1.5px solid #F2A93B;
-    border-radius:12px;
-    padding:16px 20px;
-    margin-top:14px;
-    position:relative;
-  }
-  #simResultPanel .sim-close{
-    position:absolute;
-    top:10px;right:12px;
-    background:transparent;
-    border:none;
-    font-size:18px;
-    cursor:pointer;
-    color:#999;
-    line-height:1;
-  }
-  #simResultPanel .sim-close:hover{color:#333;}
-  #simResultPanel h4{
-    margin:0 0 12px 0;
-    font-size:13px;
-    font-weight:700;
-    color:#A04000;
-  }
-  #simResultPanel .sim-kpis{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-  }
-  #simResultPanel .sim-kpi{
-    background:#fff;
-    border-radius:8px;
-    padding:10px 14px;
-    border:1px solid #FAD7A0;
-  }
-  #simResultPanel .sim-kpi .slabel{font-size:10px;font-weight:700;text-transform:uppercase;color:#9A7D0A;letter-spacing:.4px;}
-  #simResultPanel .sim-kpi .sval{font-size:20px;font-weight:900;color:#A04000;margin:4px 0 2px;}
-  #simResultPanel .sim-kpi .ssub{font-size:11px;color:#9A7D0A;}
 
   .filter-bar{
     display:flex;
@@ -615,14 +556,13 @@
         <input type="file" id="excelInput" accept=".xlsx,.xls,.csv">
         <!--<span class="filename" id="excelFileName">Usando datos de ejemplo</span>-->
         <button class="reset-btn" id="resetDataBtn" title="Volver a los datos originales">↺ Restaurar</button>
-        <button class="btn-pdf" id="btnGenerarPDF" title="Generar reporte PDF">📄 Generar reporte</button>
       </div>
       <div class="badge">
         <span>Fecha de corte</span>
         <strong id="cutoffDate">—</strong>
       </div>
       <div>
-        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">                
+        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">
       </div>
     </div>
   </header>
@@ -650,11 +590,6 @@
       <div class="label">Programadas</div>
       <div class="value" id="kpiProgramada" style="color:#E67E22;">—</div>
       <div class="sub" id="kpiProgramadaSub" style="color:#E67E22;">—</div>
-    </div>
-    <div class="kpi" style="border-top:3px solid #C0392B;">
-      <div class="label">Ventanas fallidas</div>
-      <div class="value" id="kpiFallida" style="color:#C0392B;">—</div>
-      <div class="sub" id="kpiFallidaSub" style="color:#C0392B;">—</div>
     </div>
     <div class="kpi pendiente">
       <div class="label">No iniciado</div>
@@ -756,18 +691,8 @@
         </div>
       </div>
       <button type="button" class="apply-btn" id="applyManualRateBtn">Calcular fecha de conclusión</button>
-    </div>
-
-    <!-- Panel resultado simulación (oculto hasta que se calcule) -->
-    <div id="simResultPanel" style="display:none;">
-      <button class="sim-close" id="simResultClose" title="Cerrar proyección simulada">✕</button>
-      <h4>📊 Proyección simulada</h4>
-      <div class="sim-kpis">
-        <div class="sim-kpi"><div class="slabel">Ritmo proyectado</div><div class="sval" id="simResRate">—</div><div class="ssub" id="simResRateSub">—</div></div>
-        <div class="sim-kpi"><div class="slabel">Pendientes por migrar</div><div class="sval" id="simResPending">—</div><div class="ssub">sitios</div></div>
-        <div class="sim-kpi"><div class="slabel">Cierre estimado</div><div class="sval" id="simResEta" style="font-size:15px;">—</div><div class="ssub" id="simResEtaSub">—</div></div>
-        <div class="sim-kpi"><div class="slabel">Semanas restantes</div><div class="sval" id="simResWeeks">—</div><div class="ssub">semanas</div></div>
-      </div>
+      <button type="button" class="reset-trend-btn" id="resetTrendBtn">↺ Volver a tendencia histórica</button>
+      <span class="sim-status historic" id="simStatusBadge">Usando datos históricos</span>
     </div>
 
     <div class="chart-box"><canvas id="projectionChart" height="100"></canvas></div>
@@ -825,13 +750,6 @@
       <div class="desc">Requieren atención / escalamiento</div>
       <div id="riskList"></div>
     </div>
-  </div>
-
-  <!-- ROW: Ventanas Fallidas (ancho completo) -->
-  <div class="panel" id="fallidasPanel">
-    <h2><span class="dot" style="background:#C0392B"></span> ❌ Ventanas fallidas</h2>
-    <div class="desc">Sitios cuya última ventana de migración fue ejecutada y no completó exitosamente</div>
-    <div id="fallidaList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;"></div>
   </div>
 
   <!-- TABLE -->
@@ -953,7 +871,6 @@ const STATUS_COLORS = {
   'Equipo en transito': '#F2A93B',
   'En preconfiguracion': '#4A6CF7',
   'Dependencia': '#E0483E',
-  'Fallida': '#C0392B',
   'Impl. Cancelada': '#717D7E',
   'No iniciado': '#A9B2C3'
 };
@@ -965,11 +882,10 @@ const STATUS_LABELS = {
   'Equipo en transito':'En tránsito',
   'En preconfiguracion':'Preconfiguración',
   'Dependencia':'Dependencia (riesgo)',
-  'Fallida':'Fallida',
   'Impl. Cancelada':'Impl. Cancelada',
   'No iniciado':'No iniciado'
 };
-const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Fallida','Impl. Cancelada','No iniciado'];
+const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
 
 // Required columns expected in an uploaded Excel/CSV
 const REQUIRED_COLS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus','fecha_envio','lote','dependencia'];
@@ -1038,7 +954,6 @@ function statusTagClass(s){
     case 'Equipo en transito': return 'transito';
     case 'En preconfiguracion': return 'progreso';
     case 'Dependencia': return 'riesgo';
-    case 'Fallida': return 'fallida';
     case 'Impl. Cancelada': return 'cancelada';
     default: return 'pendiente';
   }
@@ -1101,7 +1016,6 @@ function renderKPIs(filtered){
   const listoProgramar = byStatus['Listo para programar']||0;
   const listoEmbarcar = byStatus['Listo para embarcar']||0;
   const programada = byStatus['Programada']||0;
-  const fallida = byStatus['Fallida']||0;
   const enProgreso = enTransito + enPreconfig + listoProgramar + listoEmbarcar;
   const noIniciado = byStatus['No iniciado']||0;
   const riesgo = byStatus['Dependencia']||0;
@@ -1129,8 +1043,6 @@ function renderKPIs(filtered){
   document.getElementById('kpiRiesgo').textContent = riesgo;
   document.getElementById('kpiProgramada').textContent = programada;
   safeSetText('kpiProgramadaSub', total>0 ? ((programada/total)*100).toFixed(1)+'% del total' : '—');
-  document.getElementById('kpiFallida').textContent = fallida;
-  safeSetText('kpiFallidaSub', total>0 ? ((fallida/total)*100).toFixed(1)+'% del total' : '—');
 
   if(lastSite){
     safeSetText('kpiLastSite', lastSite.sigla || lastSite.localidad);
@@ -1299,6 +1211,9 @@ function renderProjectionChart(filtered){
       document.getElementById('projectionNote').textContent =
         `Proyección SIMULADA desde hoy: este filtro no tiene suficientes migraciones exitosas con fecha para construir una tendencia histórica, así que la estimación parte de ${pendientes} sitio(s) pendientes a la fecha de hoy, asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'}.`;
 
+      const badge = document.getElementById('simStatusBadge');
+      badge.textContent = `Simulando ${manualRateOverride.value}/${manualRateOverride.unit==='week'?'semana':'mes'} (desde hoy)`;
+      badge.className = 'sim-status simulated';
       document.getElementById('projLegendDot').style.background = '#F2A93B';
       document.getElementById('projLegendText').textContent = 'Proyección (ritmo simulado desde hoy)';
       return;
@@ -1309,6 +1224,9 @@ function renderProjectionChart(filtered){
     document.getElementById('projEtaSub').textContent = 'se requieren ≥2 migraciones exitosas con fecha';
     document.getElementById('projWeeksLeft').textContent = '—';
     document.getElementById('projectionNote').textContent = 'No hay suficientes migraciones exitosas con fecha para calcular una tendencia histórica con este filtro. Puedes usar el simulador de ritmo manual para proyectar una fecha de conclusión desde hoy.';
+    const badge = document.getElementById('simStatusBadge');
+    badge.textContent = 'Usando datos históricos';
+    badge.className = 'sim-status historic';
     return;
   }
 
@@ -1440,13 +1358,14 @@ function renderProjectionChart(filtered){
     ? `Proyección SIMULADA: asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'} (ingresado manualmente), partiendo de los ${totalCompletados} sitios ya completados de ${totalSitios} en alcance. El ritmo histórico real es de ${historicRatePerPeriod.toFixed(2)}/${periodLabel}. Usa "Volver a tendencia histórica" para regresar al cálculo basado en datos reales.`
     : `Cálculo basado en promedio simple: ${totalCompletados} migraciones exitosas registradas en ${weeksElapsed.toFixed(1)} semanas (desde ${exitosos[0].fecha_propuesta} hasta ${exitosos[exitosos.length-1].fecha_propuesta}). La proyección asume que el ritmo de migración se mantiene constante; bloqueos o aceleraciones futuras pueden modificar esta estimación.`;
 
-  // Update projection legend
+  // sim status badge
+  const badge = document.getElementById('simStatusBadge');
   if(isSimulated){
-    document.getElementById('projLegendDot').style.background = '#F2A93B';
-    document.getElementById('projLegendText').textContent = 'Proyección (ritmo simulado)';
+    badge.textContent = `Simulando ${manualRateOverride.value}/${manualRateOverride.unit==='week'?'semana':'mes'}`;
+    badge.className = 'sim-status simulated';
   } else {
-    document.getElementById('projLegendDot').style.background = '#00AEEF';
-    document.getElementById('projLegendText').textContent = 'Proyección (tendencia histórica)';
+    badge.textContent = 'Usando datos históricos';
+    badge.className = 'sim-status historic';
   }
   document.getElementById('projLegendDot').style.background = isSimulated ? '#F2A93B' : '#00AEEF';
   document.getElementById('projLegendText').textContent = isSimulated ? 'Proyección (ritmo simulado)' : 'Proyección (tendencia lineal)';
@@ -1561,14 +1480,6 @@ document.querySelectorAll('.sim-unit').forEach(btn=>{
   });
 });
 
-function closeSimResult(){
-  document.getElementById('simResultPanel').style.display = 'none';
-  manualRateOverride = null;
-  document.getElementById('manualRateInput').value = '';
-  document.getElementById('manualRateInput').style.borderColor = '';
-  renderProjectionChart(getFilteredData());
-}
-
 document.getElementById('applyManualRateBtn').addEventListener('click', ()=>{
   const input = document.getElementById('manualRateInput');
   const val = parseFloat(input.value);
@@ -1579,35 +1490,21 @@ document.getElementById('applyManualRateBtn').addEventListener('click', ()=>{
   }
   input.style.borderColor = '';
   manualRateOverride = {value: val, unit: manualRateUnit};
-
-  // Compute sim projection KPIs
-  const filtered = getFilteredData();
-  const pendientes = filtered.filter(r=>r.estatus!=='Exitosa' && r.estatus!=='Impl. Cancelada' && r.estatus!=='Fallida').length;
-  const weeklyRate = manualRateUnit === 'week' ? val : val / 4.345;
-  const weeksLeft  = pendientes / weeklyRate;
-  const hoy = new Date();
-  const eta = new Date(hoy.getTime() + weeksLeft * 7 * 86400000);
-  const etaStr = eta.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
-
-  // Populate sim result panel
-  document.getElementById('simResRate').textContent = val.toFixed(2);
-  document.getElementById('simResRateSub').textContent = 'sitios / ' + (manualRateUnit==='week' ? 'semana' : 'mes');
-  document.getElementById('simResPending').textContent = pendientes;
-  document.getElementById('simResEta').textContent = etaStr;
-  document.getElementById('simResEtaSub').textContent = `≈ ${Math.round(weeksLeft)} sem · ≈ ${Math.round(weeksLeft/4.345)} meses`;
-  document.getElementById('simResWeeks').textContent = Math.round(weeksLeft);
-  document.getElementById('simResultPanel').style.display = '';
-
-  renderProjectionChart(filtered);
+  renderProjectionChart(getFilteredData());
 });
-
-document.getElementById('simResultClose').addEventListener('click', closeSimResult);
 
 document.getElementById('manualRateInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){
     e.preventDefault();
     document.getElementById('applyManualRateBtn').click();
   }
+});
+
+document.getElementById('resetTrendBtn').addEventListener('click', ()=>{
+  manualRateOverride = null;
+  document.getElementById('manualRateInput').value = '';
+  document.getElementById('manualRateInput').style.borderColor = '';
+  renderProjectionChart(getFilteredData());
 });
 
 function renderTrendChart(filtered){
@@ -1918,32 +1815,6 @@ function renderRiskList(filtered){
   }
 }
 
-function renderFallidaList(filtered){
-  const container = document.getElementById('fallidaList');
-  const panel = document.getElementById('fallidasPanel');
-  container.innerHTML = '';
-  const fallidas = filtered.filter(r => r.estatus === 'Fallida');
-  panel.style.display = fallidas.length === 0 ? 'none' : '';
-  if(fallidas.length === 0) return;
-  fallidas.forEach(r => {
-    const card = document.createElement('div');
-    card.className = 'risk-card';
-    card.style.cssText = 'border-left-color:#C0392B;background:#FDF2F0;';
-    card.innerHTML = `
-      <div class="site">
-        <span><strong>${r.sigla||r.localidad}</strong>${r.sigla && r.localidad ? ' — '+r.localidad : ''}</span>
-        <span class="tag fallida">Tier ${r.tier||'—'}</span>
-      </div>
-      <div class="reason">
-        ${r.pais ? r.pais+' · ' : ''}${r.tipo||''}<br>
-        ${r.fecha_propuesta ? 'Ventana: '+r.fecha_propuesta : ''}
-        ${r.dependencia ? '<br>'+r.dependencia : ''}
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
 // ============================================================
 // SLA DHL — Equipos en tránsito
 // ============================================================
@@ -2237,7 +2108,7 @@ window.addEventListener('scroll', (e)=>{
 window.addEventListener('resize', closeAutofilterPanel);
 
 // Order in which status filter buttons are displayed (excluding "Todos", added first)
-const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Fallida','Impl. Cancelada','No iniciado'];
+const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Impl. Cancelada','No iniciado'];
 
 function renderStatusFilterBar(filtered){
   const bar = document.getElementById('statusFilterBar');
@@ -2294,7 +2165,6 @@ function renderAll(){
   renderEsquemaChart(filtered);
   renderPaisChart(filtered);
   renderRiskList(filtered);
-  renderFallidaList(filtered);
   renderSlaDhl(filtered);
   renderStatusFilterBar(filtered);
   renderTable(filtered);
@@ -2423,8 +2293,10 @@ function handleExcelFile(file){
       currentStatusFilter = 'all';
       currentSearch = '';
       manualRateOverride = null;
-      document.getElementById('simResultPanel').style.display = 'none';
       FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
+      tableSortCol = null; tableSortDir = 'asc';
+      closeAutofilterPanel();
+      showUploadStatus(`✅ Base de datos actualizada: ${parsed.length} sitios cargados desde "${file.name}".`, false);
 
       renderAll();
     }catch(err){
@@ -2453,6 +2325,7 @@ document.getElementById('resetDataBtn').addEventListener('click', ()=>{
 // CARGA AUTOMÁTICA DESDE RUTA FÍSICA
 // ============================================================
 const BD_PATH = 'archivos/BD_Dashboard.xlsx';
+//const BD_PATH = 'archivos xls/archivo_bd.xlsx';
 
 function loadFromPath(path){
   showUploadStatus(`⏳ Cargando desde: ${path}...`, false);
@@ -2507,114 +2380,3 @@ loadFromPath(BD_PATH);
 </script>
 </body>
 </html>
-
-<!-- Appended: PDF generation and sim refactor JS -->
-<script>
-// ============================================================
-// GENERAR REPORTE PDF
-// ============================================================
-function loadScript(src){
-  return new Promise((resolve, reject)=>{
-    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-document.getElementById('btnGenerarPDF').addEventListener('click', async ()=>{
-  const btn = document.getElementById('btnGenerarPDF');
-  btn.disabled = true;
-  btn.textContent = '⏳ Generando...';
-  try {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    const { jsPDF } = window.jspdf;
-
-    const pageW=210, pageH=297, marginTop=38, marginBottom=18, marginLR=10;
-    const contentW=pageW-marginLR*2, contentH=pageH-marginTop-marginBottom;
-
-    const now = new Date();
-    const fechaArchivo = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-    const fechaHoraReporte = now.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const fileName = `${fechaArchivo}-AMX-17471-Reporte estatus migración.pdf`;
-
-    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
-
-    // Hide interactive elements
-    const toHide = document.querySelectorAll('#excelInput, label[for="excelInput"], #btnGenerarPDF, #resetDataBtn, .autofilter-panel, .af-list');
-    toHide.forEach(el=>el.style.visibility='hidden');
-
-    const canvas = await html2canvas(document.body, {
-      scale: 1.5, useCORS:true, allowTaint:true,
-      scrollX:0, scrollY:0,
-      windowWidth: document.body.scrollWidth,
-      windowHeight: document.body.scrollHeight
-    });
-
-    toHide.forEach(el=>el.style.visibility='');
-
-    const imgW=canvas.width;
-    const imgH=canvas.height;
-    const pxPerMm = imgW / contentW;
-    const sliceHpx = Math.floor(contentH * pxPerMm);
-
-    const drawHeader = (pNum)=>{
-      pdf.setFillColor(0,51,160);
-      pdf.rect(0,0,pageW,28,'F');
-      pdf.setTextColor(255,255,255);
-      pdf.setFontSize(13); pdf.setFont('helvetica','bold');
-      pdf.text('SCITUM', 12, 11);
-      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal');
-      pdf.text('Cliente: Aeroméxico', 12, 16);
-      pdf.text('Proyecto: 17471 – SDWAN', 12, 20.5);
-      pdf.text('Reporte de estatus de implementación', 12, 25);
-      pdf.setTextColor(190,215,255);
-      pdf.setFontSize(7.5);
-      pdf.text(`Generado: ${fechaHoraReporte}`, pageW/2, 14, {align:'center'});
-      pdf.setTextColor(255,255,255);
-      pdf.setFontSize(12); pdf.setFont('helvetica','bold');
-      pdf.text('Aeroméxico', pageW-12, 11, {align:'right'});
-      pdf.setFontSize(7); pdf.setFont('helvetica','normal');
-      pdf.text('Cliente', pageW-12, 16, {align:'right'});
-      pdf.setDrawColor(0,174,239); pdf.setLineWidth(0.8);
-      pdf.line(0,28,pageW,28);
-      pdf.setTextColor(150,150,150); pdf.setFontSize(7);
-      pdf.text(`Pág. ${pNum}`, pageW-12, 34, {align:'right'});
-    };
-
-    const drawFooter = ()=>{
-      pdf.setDrawColor(210,210,210); pdf.setLineWidth(0.3);
-      pdf.line(marginLR, pageH-14, pageW-marginLR, pageH-14);
-      pdf.setTextColor(130,130,130); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
-      pdf.text('© 2026 Copyright - Scitum, S.A. de C.V. Todos los derechos reservados', pageW/2, pageH-9, {align:'center'});
-    };
-
-    let sliceY=0, pageNum=1;
-    while(sliceY < imgH){
-      if(pageNum > 1) pdf.addPage();
-      drawHeader(pageNum);
-      drawFooter();
-
-      const sliceH = Math.min(sliceHpx, imgH-sliceY);
-      const sc = document.createElement('canvas');
-      sc.width=imgW; sc.height=sliceH;
-      sc.getContext('2d').drawImage(canvas, 0,sliceY, imgW,sliceH, 0,0, imgW,sliceH);
-      pdf.addImage(sc.toDataURL('image/jpeg',0.88), 'JPEG', marginLR, marginTop, contentW, sliceH/pxPerMm);
-
-      sliceY += sliceHpx;
-      pageNum++;
-    }
-
-    pdf.save(fileName);
-  } catch(err){
-    alert('Error al generar el PDF: ' + err.message);
-    console.error(err);
-  } finally {
-    btn.disabled=false;
-    btn.textContent='📄 Generar reporte';
-  }
-});
-</script>
