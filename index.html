@@ -598,7 +598,7 @@
     margin-left:auto;
   }
 </style>
-<link rel="icon" type="image/png" href="img/simbolo-favicon-Color-sin-fondo.png">
+<link rel="icon" type="image/png" href="img/SCITUM Identidad gráfica/simbolo-favicon-Color-sin-fondo.png">
 </head>
 <body>
 <div class="wrap">
@@ -622,7 +622,7 @@
         <strong id="cutoffDate">—</strong>
       </div>
       <div>
-        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">                
+        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">
       </div>
     </div>
   </header>
@@ -770,7 +770,8 @@
         <div class="sim-kpi"><div class="slabel">Semanas restantes</div><div class="sval" id="simResWeeks">—</div><div class="ssub">semanas</div></div>
       </div>
     </div>
-<br>
+    <br>
+
     <div class="chart-box"><canvas id="projectionChart" height="100"></canvas></div>
     <div class="legend-row" style="margin-top:10px;">
       <span><i style="background:#0033A0"></i> Migraciones reales por periodo</span>
@@ -1233,7 +1234,7 @@ function getISOWeekKey(date){
   const jan1 = new Date(Date.UTC(year,0,1));
   const weekNum = Math.ceil((((d - jan1) / 86400000) + 1) / 7);
   const key = `${year}-W${String(weekNum).padStart(2,'0')}`;
-  const label = d.toLocaleDateString('es-MX', {day:'2-digit', month:'short', timeZone:'UTC'});
+  const label = d.toLocaleDateString('es-MX', {month:'short', year:'2-digit', timeZone:'UTC'});
   return {key, label, sortDate: d};
 }
 function getMonthKey(date){
@@ -1271,45 +1272,17 @@ function renderProjectionChart(filtered){
   const totalCompletados = exitosos.length;
   const pendientes = filtered.filter(r=>r.estatus !== 'Exitosa' && r.estatus !== 'Impl. Cancelada').length;
 
-  document.getElementById('projPending').textContent = pendientes;
-
   if(exitosos.length < 2){
-    // If the user has set a manual simulated rate, we can still project forward from TODAY,
-    // even without enough historic points to build a trend line.
-    if(manualRateOverride && manualRateOverride.value > 0 && pendientes > 0){
-      const periodLabelTmp = projectionGranularity === 'week' ? 'semana' : 'mes';
-      const manualWeekly = manualRateOverride.unit === 'week' ? manualRateOverride.value : manualRateOverride.value / 4.345;
-      const ratePerPeriodTmp = projectionGranularity === 'week' ? manualWeekly : manualWeekly * 4.345;
-
-      const today = new Date();
-      const periodsToFinishTmp = Math.ceil(pendientes / ratePerPeriodTmp);
-      let etaDateTmp, weeksLeftTmp;
-      if(projectionGranularity === 'week'){
-        etaDateTmp = new Date(today.getTime() + periodsToFinishTmp*7*86400000);
-        weeksLeftTmp = periodsToFinishTmp;
-      } else {
-        etaDateTmp = new Date(today.getFullYear(), today.getMonth()+periodsToFinishTmp, 1);
-        weeksLeftTmp = Math.round(periodsToFinishTmp * 4.345);
-      }
-
-      document.getElementById('projRate').textContent = ratePerPeriodTmp.toFixed(1);
-      document.getElementById('projRateSub').textContent = `sitios / ${periodLabelTmp} (ritmo simulado)`;
-      document.getElementById('projEta').textContent = etaDateTmp.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
-      document.getElementById('projEtaSub').textContent = `al ritmo simulado de ${ratePerPeriodTmp.toFixed(1)}/${periodLabelTmp} desde hoy`;
-      document.getElementById('projWeeksLeft').textContent = weeksLeftTmp;
-      document.getElementById('projectionNote').textContent =
-        `Proyección SIMULADA desde hoy: este filtro no tiene suficientes migraciones exitosas con fecha para construir una tendencia histórica, así que la estimación parte de ${pendientes} sitio(s) pendientes a la fecha de hoy, asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'}.`;
-
-      document.getElementById('projLegendDot').style.background = '#F2A93B';
-      document.getElementById('projLegendText').textContent = 'Proyección (ritmo simulado desde hoy)';
-      return;
+    if(!isSimulated){
+      document.getElementById('projRate').textContent = '—';
+      document.getElementById('projEta').textContent = 'Datos insuficientes';
+      document.getElementById('projEtaSub').textContent = 'se requieren ≥2 migraciones exitosas con fecha';
+      document.getElementById('projWeeksLeft').textContent = '—';
+      document.getElementById('projPending').textContent = pendientes;
+      document.getElementById('projectionNote').textContent = 'No hay suficientes migraciones exitosas con fecha para calcular una tendencia histórica con este filtro. Puedes usar el simulador de ritmo manual para proyectar una fecha de conclusión desde hoy.';
     }
-
-    document.getElementById('projRate').textContent = '—';
-    document.getElementById('projEta').textContent = 'Datos insuficientes';
-    document.getElementById('projEtaSub').textContent = 'se requieren ≥2 migraciones exitosas con fecha';
-    document.getElementById('projWeeksLeft').textContent = '—';
-    document.getElementById('projectionNote').textContent = 'No hay suficientes migraciones exitosas con fecha para calcular una tendencia histórica con este filtro. Puedes usar el simulador de ritmo manual para proyectar una fecha de conclusión desde hoy.';
+    document.getElementById('projLegendDot').style.background = '#00AEEF';
+    document.getElementById('projLegendText').textContent = 'Proyección (tendencia histórica)';
     return;
   }
 
@@ -1396,7 +1369,7 @@ function renderProjectionChart(filtered){
       futureDate = new Date(baseDate.getFullYear(), baseDate.getMonth()+i, 1);
     }
     const futLabel = projectionGranularity === 'week'
-      ? futureDate.toLocaleDateString('es-MX', {day:'2-digit', month:'short', timeZone:'UTC'})
+      ? futureDate.toLocaleDateString('es-MX', {month:'short', year:'2-digit', timeZone:'UTC'})
       : futureDate.toLocaleDateString('es-MX', {month:'short', year:'2-digit', timeZone:'UTC'});
     fullProjLabels.push(futLabel);
 
@@ -1406,40 +1379,42 @@ function renderProjectionChart(filtered){
   // Bars: real migrations per period (only for real periods, null for projected)
   const barData = periodCounts.concat(new Array(fullProjLabels.length - periodCounts.length).fill(null));
 
-  // --- KPI calculations ---
+  // --- KPI calculations — solo se escriben con datos históricos; cuando hay simulación, los KPIs históricos no cambian ---
   const periodLabel = projectionGranularity === 'week' ? 'semana' : 'mes';
-  document.getElementById('projRate').textContent = ratePerPeriod.toFixed(1);
-  document.getElementById('projRateSub').textContent = isSimulated
-    ? `sitios / ${periodLabel} (ritmo simulado)`
-    : `sitios / ${periodLabel} (tendencia histórica)`;
 
-  if(pendientes === 0){
-    document.getElementById('projEta').textContent = '✅ Completado';
-    document.getElementById('projEtaSub').textContent = 'todos los sitios migrados';
-    document.getElementById('projWeeksLeft').textContent = '0';
-  } else if(ratePerPeriod <= 0){
-    document.getElementById('projEta').textContent = 'Sin tendencia';
-    document.getElementById('projEtaSub').textContent = 'ritmo actual es 0';
-    document.getElementById('projWeeksLeft').textContent = '—';
-  } else {
-    const baseDate = buckets[bucketKeys[bucketKeys.length-1]].sortDate;
-    let etaDate;
-    let weeksLeft;
-    if(projectionGranularity === 'week'){
-      etaDate = new Date(baseDate.getTime() + periodsToFinish*7*86400000);
-      weeksLeft = periodsToFinish;
+  if(!isSimulated){
+    document.getElementById('projRate').textContent = ratePerPeriod.toFixed(1);
+    document.getElementById('projRateSub').textContent = `sitios / ${periodLabel} (tendencia histórica)`;
+
+    if(pendientes === 0){
+      document.getElementById('projEta').textContent = '✅ Completado';
+      document.getElementById('projEtaSub').textContent = 'todos los sitios migrados';
+      document.getElementById('projWeeksLeft').textContent = '0';
+    } else if(ratePerPeriod <= 0){
+      document.getElementById('projEta').textContent = 'Sin tendencia';
+      document.getElementById('projEtaSub').textContent = 'ritmo actual es 0';
+      document.getElementById('projWeeksLeft').textContent = '—';
     } else {
-      etaDate = new Date(baseDate.getFullYear(), baseDate.getMonth()+periodsToFinish, 1);
-      weeksLeft = Math.round(periodsToFinish * 4.345);
+      const baseDate = buckets[bucketKeys[bucketKeys.length-1]].sortDate;
+      let etaDate, weeksLeft;
+      if(projectionGranularity === 'week'){
+        etaDate = new Date(baseDate.getTime() + periodsToFinish*7*86400000);
+        weeksLeft = periodsToFinish;
+      } else {
+        etaDate = new Date(baseDate.getFullYear(), baseDate.getMonth()+periodsToFinish, 1);
+        weeksLeft = Math.round(periodsToFinish * 4.345);
+      }
+      document.getElementById('projEta').textContent = etaDate.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
+      document.getElementById('projEtaSub').textContent = `al ritmo actual de ${ratePerPeriod.toFixed(1)}/${periodLabel}`;
+      document.getElementById('projWeeksLeft').textContent = weeksLeft;
     }
-    document.getElementById('projEta').textContent = etaDate.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
-    document.getElementById('projEtaSub').textContent = `${isSimulated ? 'al ritmo simulado de' : 'al ritmo actual de'} ${ratePerPeriod.toFixed(1)}/${periodLabel}`;
-    document.getElementById('projWeeksLeft').textContent = weeksLeft;
+
+    document.getElementById('projectionNote').textContent =
+      `Cálculo basado en promedio simple: ${totalCompletados} migraciones exitosas registradas en ${weeksElapsed.toFixed(1)} semanas (desde ${exitosos[0].fecha_propuesta} hasta ${exitosos[exitosos.length-1].fecha_propuesta}). La proyección asume que el ritmo de migración se mantiene constante; bloqueos o aceleraciones futuras pueden modificar esta estimación.`;
   }
 
-  document.getElementById('projectionNote').textContent = isSimulated
-    ? `Proyección SIMULADA: asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'} (ingresado manualmente), partiendo de los ${totalCompletados} sitios ya completados de ${totalSitios} en alcance. El ritmo histórico real es de ${historicRatePerPeriod.toFixed(2)}/${periodLabel}. Usa "Volver a tendencia histórica" para regresar al cálculo basado en datos reales.`
-    : `Cálculo basado en promedio simple: ${totalCompletados} migraciones exitosas registradas en ${weeksElapsed.toFixed(1)} semanas (desde ${exitosos[0].fecha_propuesta} hasta ${exitosos[exitosos.length-1].fecha_propuesta}). La proyección asume que el ritmo de migración se mantiene constante; bloqueos o aceleraciones futuras pueden modificar esta estimación.`;
+  // pendientes siempre actualiza (no es parte de la proyección simulada)
+  document.getElementById('projPending').textContent = pendientes;
 
   // Update projection legend
   if(isSimulated){
@@ -2616,6 +2591,323 @@ document.getElementById('btnGenerarPDF').addEventListener('click', async ()=>{
   } finally {
     btn.disabled=false;
     btn.textContent='📄 Generar reporte';
+  }
+});
+</script>
+
+
+<!-- Appended: PDF generation and sim refactor JS -->
+<script>
+// ============================================================
+// GENERAR REPORTE PDF
+// ============================================================
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+document.getElementById('btnGenerarPDF').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnGenerarPDF');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const { jsPDF } = window.jspdf;
+
+    const pageW=210, pageH=297, marginTop=38, marginBottom=18, marginLR=10;
+    const contentW=pageW-marginLR*2, contentH=pageH-marginTop-marginBottom;
+
+    const now = new Date();
+    const fechaArchivo = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+    const fechaHoraReporte = now.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const fileName = `${fechaArchivo}-AMX-17471-Reporte estatus migración.pdf`;
+
+    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+
+    // Hide interactive elements
+    const toHide = document.querySelectorAll('#excelInput, label[for="excelInput"], #btnGenerarPDF, #resetDataBtn, .autofilter-panel, .af-list');
+    toHide.forEach(el=>el.style.visibility='hidden');
+
+    const canvas = await html2canvas(document.body, {
+      scale: 1.5, useCORS:true, allowTaint:true,
+      scrollX:0, scrollY:0,
+      windowWidth: document.body.scrollWidth,
+      windowHeight: document.body.scrollHeight
+    });
+
+    toHide.forEach(el=>el.style.visibility='');
+
+    const imgW=canvas.width;
+    const imgH=canvas.height;
+    const pxPerMm = imgW / contentW;
+    const sliceHpx = Math.floor(contentH * pxPerMm);
+
+    const drawHeader = (pNum)=>{
+      pdf.setFillColor(0,51,160);
+      pdf.rect(0,0,pageW,28,'F');
+      pdf.setTextColor(255,255,255);
+      pdf.setFontSize(13); pdf.setFont('helvetica','bold');
+      pdf.text('SCITUM', 12, 11);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente: Aeroméxico', 12, 16);
+      pdf.text('Proyecto: 17471 – SDWAN', 12, 20.5);
+      pdf.text('Reporte de estatus de implementación', 12, 25);
+      pdf.setTextColor(190,215,255);
+      pdf.setFontSize(7.5);
+      pdf.text(`Generado: ${fechaHoraReporte}`, pageW/2, 14, {align:'center'});
+      pdf.setTextColor(255,255,255);
+      pdf.setFontSize(12); pdf.setFont('helvetica','bold');
+      pdf.text('Aeroméxico', pageW-12, 11, {align:'right'});
+      pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente', pageW-12, 16, {align:'right'});
+      pdf.setDrawColor(0,174,239); pdf.setLineWidth(0.8);
+      pdf.line(0,28,pageW,28);
+      pdf.setTextColor(150,150,150); pdf.setFontSize(7);
+      pdf.text(`Pág. ${pNum}`, pageW-12, 34, {align:'right'});
+    };
+
+    const drawFooter = ()=>{
+      pdf.setDrawColor(210,210,210); pdf.setLineWidth(0.3);
+      pdf.line(marginLR, pageH-14, pageW-marginLR, pageH-14);
+      pdf.setTextColor(130,130,130); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('© 2026 Copyright - Scitum, S.A. de C.V. Todos los derechos reservados', pageW/2, pageH-9, {align:'center'});
+    };
+
+    let sliceY=0, pageNum=1;
+    while(sliceY < imgH){
+      if(pageNum > 1) pdf.addPage();
+      drawHeader(pageNum);
+      drawFooter();
+
+      const sliceH = Math.min(sliceHpx, imgH-sliceY);
+      const sc = document.createElement('canvas');
+      sc.width=imgW; sc.height=sliceH;
+      sc.getContext('2d').drawImage(canvas, 0,sliceY, imgW,sliceH, 0,0, imgW,sliceH);
+      pdf.addImage(sc.toDataURL('image/jpeg',0.88), 'JPEG', marginLR, marginTop, contentW, sliceH/pxPerMm);
+
+      sliceY += sliceHpx;
+      pageNum++;
+    }
+
+    pdf.save(fileName);
+  } catch(err){
+    alert('Error al generar el PDF: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.disabled=false;
+    btn.textContent='📄 Generar reporte';
+  }
+});
+</script>
+
+<!-- Appended: PDF generation and sim refactor JS -->
+<script>
+// ============================================================
+// GENERAR REPORTE PDF
+// ============================================================
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
+    const s=document.createElement('script');
+    s.src=src; s.onload=resolve; s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+
+document.getElementById('btnGenerarPDF').addEventListener('click', async ()=>{
+  const btn=document.getElementById('btnGenerarPDF');
+  btn.disabled=true; btn.textContent='⏳ Generando...';
+  try{
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const {jsPDF}=window.jspdf;
+
+    const pageW=210, pageH=297, marginTop=38, marginBottom=18, marginLR=10;
+    const contentW=pageW-marginLR*2, contentH=pageH-marginTop-marginBottom;
+    const scale=2;
+
+    const now=new Date();
+    const fa=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+    const fh=now.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const fileName=`${fa}-AMX-17471-Reporte estatus migración.pdf`;
+
+    // --- Expand table to show all rows ---
+    const tableScroll=document.querySelector('.table-scroll');
+    const origMaxH=tableScroll ? tableScroll.style.maxHeight : null;
+    if(tableScroll) tableScroll.style.maxHeight='none';
+
+    // Hide interactive elements
+    const toHide=document.querySelectorAll('#excelInput,label[for="excelInput"],#btnGenerarPDF,#resetDataBtn,.autofilter-panel,.sort-btn,.autofilter-btn');
+    toHide.forEach(el=>el.style.visibility='hidden');
+    await new Promise(r=>setTimeout(r,250));
+
+    // --- Collect sections to render ---
+    // Each entry: {el, isTable}
+    // We split the table into: thead + chunks of tbody rows
+    const sections=[];
+
+    // All panels/grids in document order, except the table panel (handled separately)
+    const tablePanel=document.querySelector('.table-section, .panel:has(#tableBody), #tableBody')?.closest('.panel');
+
+    document.querySelectorAll('header, .kpi-grid, .type-chips-panel, .panel').forEach(el=>{
+      if(el===tablePanel) return; // handle separately
+      if(!el.offsetParent && el.tagName!=='HEADER') return; // hidden
+      if(el.closest('.panel') && el.closest('.panel')!==el && el.tagName!=='HEADER') return; // nested
+      sections.push({el, isTable:false});
+    });
+
+    // Add table as last section (with row splitting)
+    if(tablePanel) sections.push({el:tablePanel, isTable:true});
+
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    let pageNum=1;
+    let cursorY=marginTop; // current Y position on current page
+
+    const drawHeader=(pNum)=>{
+      pdf.setFillColor(0,51,160); pdf.rect(0,0,pageW,28,'F');
+      pdf.setTextColor(255,255,255); pdf.setFontSize(13); pdf.setFont('helvetica','bold');
+      pdf.text('SCITUM',12,11);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente: Aeroméxico',12,16);
+      pdf.text('Proyecto: 17471 – SDWAN',12,20.5);
+      pdf.text('Reporte de estatus de implementación',12,25);
+      pdf.setTextColor(190,215,255); pdf.setFontSize(7.5);
+      pdf.text(`Generado: ${fh}`,pageW/2,14,{align:'center'});
+      pdf.setTextColor(255,255,255); pdf.setFontSize(12); pdf.setFont('helvetica','bold');
+      pdf.text('Aeroméxico',pageW-12,11,{align:'right'});
+      pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente',pageW-12,16,{align:'right'});
+      pdf.setDrawColor(0,174,239); pdf.setLineWidth(0.8); pdf.line(0,28,pageW,28);
+      pdf.setTextColor(150,150,150); pdf.setFontSize(7);
+      pdf.text(`Pág. ${pNum}`,pageW-12,34,{align:'right'});
+    };
+    const drawFooter=()=>{
+      pdf.setDrawColor(210,210,210); pdf.setLineWidth(0.3);
+      pdf.line(marginLR,pageH-14,pageW-marginLR,pageH-14);
+      pdf.setTextColor(130,130,130); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('© 2026 Copyright - Scitum, S.A. de C.V. Todos los derechos reservados',pageW/2,pageH-9,{align:'center'});
+    };
+    const newPage=()=>{
+      drawFooter(); pdf.addPage(); pageNum++; drawHeader(pageNum); cursorY=marginTop;
+    };
+
+    drawHeader(1); drawFooter();
+
+    // Helper: capture an element and return {imgData, heightMm}
+    const captureEl=async(el)=>{
+      const c=await html2canvas(el,{scale,useCORS:true,allowTaint:true,
+        scrollX:0,scrollY:0,
+        width:el.scrollWidth, height:el.scrollHeight});
+      const pxPerMm=c.width/contentW;
+      return {imgData:c.toDataURL('image/jpeg',0.9), heightMm:c.height/pxPerMm, canvas:c, pxPerMm};
+    };
+
+    // --- Render non-table sections ---
+    for(const sec of sections){
+      if(sec.isTable) continue;
+      let cap;
+      try{ cap=await captureEl(sec.el); }catch(e){ continue; }
+      const {imgData,heightMm}=cap;
+      if(heightMm<=0) continue;
+
+      const avail=pageH-marginBottom-cursorY;
+      // If section doesn't fit on remaining space AND it's not tiny (>8mm), new page
+      if(heightMm>avail && avail<contentH*0.4){
+        newPage();
+      }
+      // If section is larger than a full page, scale to fit one page
+      const renderH=Math.min(heightMm, contentH);
+      if(cursorY+renderH > pageH-marginBottom){ newPage(); }
+
+      pdf.addImage(imgData,'JPEG',marginLR,cursorY,contentW,renderH);
+      cursorY+=renderH+3;
+    }
+
+    // --- Render table section: thead repeats on each page, tbody split by row ---
+    if(tablePanel){
+      // Capture the non-tbody part of the table panel (title, filters, search)
+      const panelHeader=tablePanel.querySelector('h2,h3,.desc,.filter-bar');
+      if(panelHeader){
+        // capture everything above the table-scroll
+        const beforeTable=document.createElement('div');
+        beforeTable.style.cssText='background:#fff;padding:16px;';
+        tablePanel.querySelectorAll('h2,h3,.desc,.filter-bar,.filter-bar+.filter-bar').forEach(el=>{
+          beforeTable.appendChild(el.cloneNode(true));
+        });
+        document.body.appendChild(beforeTable);
+        try{
+          const cap=await captureEl(beforeTable);
+          if(cap.heightMm>0){
+            if(cursorY+cap.heightMm>pageH-marginBottom) newPage();
+            pdf.addImage(cap.imgData,'JPEG',marginLR,cursorY,contentW,cap.heightMm);
+            cursorY+=cap.heightMm+2;
+          }
+        }catch(e){}
+        document.body.removeChild(beforeTable);
+      }
+
+      // Capture thead
+      const thead=document.querySelector('thead');
+      let theadCap=null;
+      if(thead){
+        try{ theadCap=await captureEl(thead); }catch(e){}
+      }
+      const theadH=theadCap ? theadCap.heightMm : 0;
+
+      // Capture each tbody row individually and pack into pages
+      const rows=Array.from(document.querySelectorAll('#tableBody tr'));
+      if(rows.length>0){
+        // Print thead on current position
+        if(theadCap){
+          if(cursorY+theadH>pageH-marginBottom) newPage();
+          pdf.addImage(theadCap.imgData,'JPEG',marginLR,cursorY,contentW,theadH);
+          cursorY+=theadH;
+        }
+
+        for(let i=0;i<rows.length;i++){
+          let rowCap;
+          try{ rowCap=await captureEl(rows[i]); }catch(e){ continue; }
+          const rh=rowCap.heightMm;
+          if(rh<=0) continue;
+
+          if(cursorY+rh>pageH-marginBottom){
+            newPage();
+            // Repeat thead
+            if(theadCap){
+              pdf.addImage(theadCap.imgData,'JPEG',marginLR,cursorY,contentW,theadH);
+              cursorY+=theadH;
+            }
+          }
+          pdf.addImage(rowCap.imgData,'JPEG',marginLR,cursorY,contentW,rh);
+          cursorY+=rh;
+        }
+      }
+    }
+
+    drawFooter();
+
+    // Restore
+    toHide.forEach(el=>el.style.visibility='');
+    if(tableScroll && origMaxH!==null) tableScroll.style.maxHeight=origMaxH;
+
+    pdf.save(fileName);
+
+  }catch(err){
+    alert('Error al generar el PDF: '+err.message);
+    console.error(err);
+    // Restore on error
+    const tableScroll=document.querySelector('.table-scroll');
+    if(tableScroll) tableScroll.style.maxHeight='420px';
+    document.querySelectorAll('#excelInput,label[for="excelInput"],#btnGenerarPDF,#resetDataBtn,.autofilter-panel,.sort-btn,.autofilter-btn').forEach(el=>el.style.visibility='');
+  }finally{
+    btn.disabled=false; btn.textContent='📄 Generar reporte';
   }
 });
 </script>

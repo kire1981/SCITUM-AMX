@@ -256,6 +256,16 @@
     display:inline-flex; align-items:center; justify-content:center;
   }
   .autofilter-btn:hover{ background:#EEF1F8; color:var(--scitum-blue); }
+  .sort-btn{
+    border:none; background:transparent; cursor:pointer; padding:2px 3px;
+    border-radius:4px; color:#C5CDE0; font-size:9px; line-height:1;
+    display:inline-flex; flex-direction:column; align-items:center; gap:0px;
+    margin-left:1px;
+  }
+  .sort-btn:hover{ color:var(--scitum-blue); }
+  .sort-btn.asc .sort-up{ color:var(--scitum-blue); }
+  .sort-btn.desc .sort-down{ color:var(--scitum-blue); }
+  .sort-up, .sort-down{ line-height:1; display:block; }
   .autofilter-btn.active{ color:var(--scitum-blue); background:#E2ECFF; }
   .autofilter-btn.active::after{
     content:""; width:5px; height:5px; border-radius:50%;
@@ -317,6 +327,7 @@
   .tag.transito{background:var(--warn);color:#3a2a00;}
   .tag.pendiente{background:var(--gray);}
   .tag.cancelada{background:#717D7E;}
+  .tag.fallida{background:#C0392B;}
   .tag.riesgo{background:var(--danger);}
 
   .tier-pill{
@@ -368,6 +379,64 @@
     margin-top:24px;
     padding-bottom:10px;
   }
+
+  .btn-pdf{
+    background:#C0392B;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:8px 16px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:.15s;
+  }
+  .btn-pdf:hover{background:#a93226;}
+  .btn-pdf:disabled{background:#aaa;cursor:not-allowed;}
+
+  /* Sección resultado simulación */
+  #simResultPanel{
+    background:#FFF8EE;
+    border:1.5px solid #F2A93B;
+    border-radius:12px;
+    padding:16px 20px;
+    margin-top:14px;
+    position:relative;
+  }
+  #simResultPanel .sim-close{
+    position:absolute;
+    top:10px;right:12px;
+    background:transparent;
+    border:none;
+    font-size:18px;
+    cursor:pointer;
+    color:#999;
+    line-height:1;
+  }
+  #simResultPanel .sim-close:hover{color:#333;}
+  #simResultPanel h4{
+    margin:0 0 12px 0;
+    font-size:13px;
+    font-weight:700;
+    color:#A04000;
+  }
+  #simResultPanel .sim-kpis{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+  }
+  #simResultPanel .sim-kpi{
+    background:#fff;
+    border-radius:8px;
+    padding:10px 14px;
+    border:1px solid #FAD7A0;
+  }
+  #simResultPanel .sim-kpi .slabel{font-size:10px;font-weight:700;text-transform:uppercase;color:#9A7D0A;letter-spacing:.4px;}
+  #simResultPanel .sim-kpi .sval{font-size:20px;font-weight:900;color:#A04000;margin:4px 0 2px;}
+  #simResultPanel .sim-kpi .ssub{font-size:11px;color:#9A7D0A;}
 
   .filter-bar{
     display:flex;
@@ -546,21 +615,22 @@
         <input type="file" id="excelInput" accept=".xlsx,.xls,.csv">
         <!--<span class="filename" id="excelFileName">Usando datos de ejemplo</span>-->
         <button class="reset-btn" id="resetDataBtn" title="Volver a los datos originales">↺ Restaurar</button>
+        <button class="btn-pdf" id="btnGenerarPDF" title="Generar reporte PDF">📄 Generar reporte</button>
       </div>
       <div class="badge">
         <span>Fecha de corte</span>
         <strong id="cutoffDate">—</strong>
       </div>
       <div>
-        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">
+        <img src="img/amx_st-white-header_10.png" width="150" heigh="150">                
       </div>
     </div>
   </header>
 
   <div id="uploadStatus"></div>
 
-  <br>
   <!-- KPI ROW -->
+  <br>
   <div class="kpi-grid">
     <div class="kpi total">
       <div class="label">Sitios totales</div>
@@ -581,6 +651,11 @@
       <div class="label">Programadas</div>
       <div class="value" id="kpiProgramada" style="color:#E67E22;">—</div>
       <div class="sub" id="kpiProgramadaSub" style="color:#E67E22;">—</div>
+    </div>
+    <div class="kpi" style="border-top:3px solid #C0392B;">
+      <div class="label">Ventanas fallidas</div>
+      <div class="value" id="kpiFallida" style="color:#C0392B;">—</div>
+      <div class="sub" id="kpiFallidaSub" style="color:#C0392B;">—</div>
     </div>
     <div class="kpi pendiente">
       <div class="label">No iniciado</div>
@@ -682,10 +757,20 @@
         </div>
       </div>
       <button type="button" class="apply-btn" id="applyManualRateBtn">Calcular fecha de conclusión</button>
-      <button type="button" class="reset-trend-btn" id="resetTrendBtn">↺ Volver a tendencia histórica</button>
-      <span class="sim-status historic" id="simStatusBadge">Usando datos históricos</span>
     </div>
 
+    <!-- Panel resultado simulación (oculto hasta que se calcule) -->
+    <div id="simResultPanel" style="display:none;">
+      <button class="sim-close" id="simResultClose" title="Cerrar proyección simulada">✕</button>
+      <h4>📊 Proyección simulada</h4>
+      <div class="sim-kpis">
+        <div class="sim-kpi"><div class="slabel">Ritmo proyectado</div><div class="sval" id="simResRate">—</div><div class="ssub" id="simResRateSub">—</div></div>
+        <div class="sim-kpi"><div class="slabel">Pendientes por migrar</div><div class="sval" id="simResPending">—</div><div class="ssub">sitios</div></div>
+        <div class="sim-kpi"><div class="slabel">Cierre estimado</div><div class="sval" id="simResEta" style="font-size:15px;">—</div><div class="ssub" id="simResEtaSub">—</div></div>
+        <div class="sim-kpi"><div class="slabel">Semanas restantes</div><div class="sval" id="simResWeeks">—</div><div class="ssub">semanas</div></div>
+      </div>
+    </div>
+<br>
     <div class="chart-box"><canvas id="projectionChart" height="100"></canvas></div>
     <div class="legend-row" style="margin-top:10px;">
       <span><i style="background:#0033A0"></i> Migraciones reales por periodo</span>
@@ -743,6 +828,13 @@
     </div>
   </div>
 
+  <!-- ROW: Ventanas Fallidas (ancho completo) -->
+  <div class="panel" id="fallidasPanel">
+    <h2><span class="dot" style="background:#C0392B"></span> ❌ Ventanas fallidas</h2>
+    <div class="desc">Sitios cuya última ventana de migración fue ejecutada y no completó exitosamente</div>
+    <div id="fallidaList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;"></div>
+  </div>
+
   <!-- TABLE -->
   <div class="panel">
     <h2><span class="dot"></span> Detalle de sitios</h2>
@@ -755,15 +847,15 @@
       <table>
         <thead>
           <tr id="tableHeadRow">
-            <th class="filterable" data-col="tier"><div class="th-content"><span>Tier</span><button class="autofilter-btn" data-col="tier" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="tipo"><div class="th-content"><span>Tipo</span><button class="autofilter-btn" data-col="tipo" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="pais"><div class="th-content"><span>País</span><button class="autofilter-btn" data-col="pais" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="sigla"><div class="th-content"><span>Sigla</span><button class="autofilter-btn" data-col="sigla" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="localidad"><div class="th-content"><span>Localidad</span><button class="autofilter-btn" data-col="localidad" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="esquema"><div class="th-content"><span>Esquema</span><button class="autofilter-btn" data-col="esquema" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="fecha_propuesta"><div class="th-content"><span>Fecha prop.</span><button class="autofilter-btn" data-col="fecha_propuesta" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="estatus"><div class="th-content"><span>Estatus</span><button class="autofilter-btn" data-col="estatus" title="Filtrar">▾</button></div></th>
-            <th class="filterable" data-col="enlace_telmex"><div class="th-content"><span>Enlace Telmex</span><button class="autofilter-btn" data-col="enlace_telmex" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="tier"><div class="th-content"><span>Tier</span><button class="sort-btn" data-sort="tier" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="tier" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="tipo"><div class="th-content"><span>Tipo</span><button class="sort-btn" data-sort="tipo" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="tipo" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="pais"><div class="th-content"><span>País</span><button class="sort-btn" data-sort="pais" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="pais" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="sigla"><div class="th-content"><span>Sigla</span><button class="sort-btn" data-sort="sigla" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="sigla" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="localidad"><div class="th-content"><span>Localidad</span><button class="sort-btn" data-sort="localidad" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="localidad" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="esquema"><div class="th-content"><span>Esquema</span><button class="sort-btn" data-sort="esquema" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="esquema" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="fecha_propuesta"><div class="th-content"><span>Fecha prop.</span><button class="sort-btn" data-sort="fecha_propuesta" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="fecha_propuesta" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="estatus"><div class="th-content"><span>Estatus</span><button class="sort-btn" data-sort="estatus" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="estatus" title="Filtrar">▾</button></div></th>
+            <th class="filterable" data-col="enlace_telmex"><div class="th-content"><span>Enlace Telmex</span><button class="sort-btn" data-sort="enlace_telmex" title="Ordenar">▲▼</button><button class="autofilter-btn" data-col="enlace_telmex" title="Filtrar">▾</button></div></th>
             <th>Dependencia / Nota</th>
           </tr>
         </thead>
@@ -777,7 +869,7 @@
 
 
 <script id="dataJson" type="application/json">
-[{"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "LAS", "localidad": "Las Vegas (LAS)", "esquema": "HA", "fecha_propuesta": "19-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MCO", "localidad": "Orlando (MCO)", "esquema": "HA", "fecha_propuesta": "19-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DTW", "localidad": "Detroit (DTW)", "esquema": "HA", "fecha_propuesta": "24-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "JFK", "localidad": "Nueva York (JFK)", "esquema": "HA", "fecha_propuesta": "22-25 jun", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": "Dependencia de AMX, no tiene UTM ni enlace de internet"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MIA", "localidad": "Miami (MIA)", "esquema": "HA", "fecha_propuesta": "24-jun-26", "estatus": "Listo para programar", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "IAH", "localidad": "Houston (IAH)", "esquema": "HA", "fecha_propuesta": "25-26 jun", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "LAX", "localidad": "Los Angeles (LAX)", "esquema": "HA", "fecha_propuesta": "23-26 jun", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": "Sin enlace, pendiente la cross"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YYZ", "localidad": "Toronto (YYZ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YUL", "localidad": "Montreal (YUL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.1", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "CLO", "localidad": "Cali (CLO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.2", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Internacional", "pais": "USA", "sigla": "MIA CARGO", "localidad": "Miami (MIA CARGO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.3", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "San Salvador", "sigla": "SAL", "localidad": "San Salvador (SAL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.4", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Rep. Dominicana", "sigla": "SDQ", "localidad": "Santo Domingo (SDQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.5", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "CTG", "localidad": "Cartagena (CTG)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.6", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SMF", "localidad": "Sacramento (SMF)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo extraviado, se repondra con otro equipo"}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "BOS", "localidad": "Boston (BOS)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo retornado a Mexico por 3 intentos fallidos de entrega"}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ATL", "localidad": "Atlanta (ATL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo debe ser movilizado dentro del ATO a otro sitio"}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SEA", "localidad": "Seattle (SEA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Dependencia de AMX, no tiene UTM ni enlace de internet"}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DFW", "localidad": "Dallas (DFW)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "19-may-2026: Ventana cancelada. Dependencia de tercero AMX, quien administra el switch (Mac Address casada)"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YVR", "localidad": "Vancouver (YVR)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": "Estamos ocupando para la revision con el TAC para el laboratorio de conexion a Prisma Access"}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TIJ", "localidad": "Tijuana (TIJ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "BOG", "localidad": "Bogota (BOG)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ORD", "localidad": "Chicago (ORD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Costa Rica", "sigla": "SJO", "localidad": "Costa Rica (SJO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Guatemala", "sigla": "GUA", "localidad": "Guatemala (GUA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Peru", "sigla": "LIM", "localidad": "Lima (LIM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Brazil", "sigla": "GRU", "localidad": "Sao Paulo (GRU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Ecuador", "sigla": "MGA", "localidad": "Managua (MGA)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "MDE", "localidad": "Medellin (MDE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Honduras", "sigla": "SAP", "localidad": "San Pedro Sula (SAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Corea del Sur", "sigla": "ICN", "localidad": "Seul (ICN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguración", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "AICM T2", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "MAPFRE", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "HANGAR MEX", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "HANGAR ORIENTE", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "CARGO CORP", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "FORMACION", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Data center", "pais": "Mexico", "sigla": "", "localidad": "TULTITLAN", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "OCC", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AICM T1", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AIFA", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "Aduana", "localidad": "Almacen 16 (Aduana)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "BJX", "localidad": "Bajio (BJX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUN", "localidad": "Cancun (CUN)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "CCC", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUU", "localidad": "Chihuahua (CUU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "GDL", "localidad": "Guadalajara (GDL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "GDL", "localidad": "Guadalajara (GDL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "HMO", "localidad": "Hermosillo (HMO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MID", "localidad": "Merida (MID)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MID", "localidad": "Merida (MID)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Monterrey Terminal A", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MTY", "localidad": "Monterrey (MTY)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "OAX", "localidad": "Oaxaca (OAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "PVR", "localidad": "Puerto Vallarta (PVR)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "SJD", "localidad": "San Jose Del Cabo (SJD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "Sarabia", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "AICM", "localidad": "Seneam (AICM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TIJ", "localidad": "Tijuana (TIJ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TGZ", "localidad": "Tuxtla Gutierrez (TGZ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "VER", "localidad": "Veracruz (VER)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "VSA", "localidad": "Villahermosa (VSA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ACA", "localidad": "Acapulco (ACA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "AGU", "localidad": "Aguascalientes (AGU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CJS", "localidad": "Ciudad Juarez (CJS)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "HUX", "localidad": "Huatulco (HUX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MXL", "localidad": "Mexicali (MXL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "SLP", "localidad": "San Luis Potosi (SLP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TRC", "localidad": "Torreon (TRC)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "HMO", "localidad": "Hermosillo (HMO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUN", "localidad": "Cancun (CUN)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AEROMEXICO GDL HANGAR GUSANO BARRENADOR", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AEROMEXICO GDL NVO HANGAR DE MANTO", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MTY", "localidad": "Monterrey (MTY) Hangar", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CJS", "localidad": "Ciudad Juarez (CJS)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CME", "localidad": "Ciudad del Carmen (CME)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUL", "localidad": "Culiacan (CUL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUU", "localidad": "Chihuahua (CUU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "LAP", "localidad": "La Paz (LAP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "LMM", "localidad": "Los Mochis (LMM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MXL", "localidad": "Mexicali (MXL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MZT", "localidad": "Mazatlan (MZT)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "OAX", "localidad": "Oaxaca (OAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "REX", "localidad": "Reynosa (REX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "SJD", "localidad": "San Jose del Cabo (SJD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TAP", "localidad": "Tapachula (TAP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "VSA", "localidad": "Villahermosa (VSA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "ZIH", "localidad": "Zihuatanejo (ZIH)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CPE", "localidad": "Campeche (CPE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CPE", "localidad": "Campeche (CPE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CTM", "localidad": "Chetumal (CTM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CME", "localidad": "Ciudad Del Carmen (CME)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CEN", "localidad": "Ciudad Obregon (CEN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CEN", "localidad": "Ciudad Obregon (CEN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CLQ", "localidad": "Colima (CLQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUL", "localidad": "Culiacan (CUL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "DGO", "localidad": "Durango (DGO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "DGO", "localidad": "Durango (DGO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "LAP", "localidad": "La Paz (LAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "LMM", "localidad": "Los Mochis (LMM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZLO", "localidad": "Manzanillo (ZLO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MAM", "localidad": "Matamoros (MAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MZT", "localidad": "Mazatlan (MZT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MTT", "localidad": "Minatitlan (MTT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MTT", "localidad": "Minatitlan (MTT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MLM", "localidad": "Morelia (MLM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "NLD", "localidad": "Nuevo Laredo (NLD)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "PXM", "localidad": "Puerto Escondido (PXM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "QRO", "localidad": "Queretaro (QRO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "QRO", "localidad": "Queretaro (QRO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "REX", "localidad": "Reynosa (REX)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TAM", "localidad": "Tampico (TAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TAM", "localidad": "Tampico (TAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TAP", "localidad": "Tapachula (TAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TPQ", "localidad": "Tepic (TPQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZIH", "localidad": "Zihuatanejo (ZIH)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "CDMX Gustavo Baz", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "BJX", "localidad": "Bajio (BJX)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "PVR", "localidad": "Puerto Vallarta (PVR)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TGZ", "localidad": "Tuxtla Gutierrez (TGZ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "VER", "localidad": "Veracruz (VER)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "AGU", "localidad": "Aguascalientes (AGU)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "SLP", "localidad": "San Luis Potosi (SLP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TRC", "localidad": "Torreon (TRC)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "", "localidad": "DC AWS West 2", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "", "localidad": "DC AWS East 1", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Espana", "sigla": "MAD", "localidad": "Madrid (MAD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Holanda", "sigla": "AMS", "localidad": "Amsterdam (AMS)(SPL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Argentina", "sigla": "EZE", "localidad": "Buenos Aires (EZE)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Francia", "sigla": "CDG", "localidad": "Paris (CDG)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Internacional", "pais": "USA", "sigla": "LAX", "localidad": "Los Angeles (LAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "AUS", "localidad": "Austin (AUS)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "FAT", "localidad": "Fresno (FAT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Cuba", "sigla": "HAV", "localidad": "La Habana (HAV)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MFE", "localidad": "Mc Allen (MFE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Japon", "sigla": "NRT", "localidad": "Narita (NRT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ONT", "localidad": "Ontario (ONT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SLC", "localidad": "Salt Lake City (SLC)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Puerto Rico", "sigla": "SJU", "localidad": "San Juan (SJU)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CZM", "localidad": "Cozumel (CZM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZCL", "localidad": "Zacatecas (ZCL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TQO", "localidad": "Tulum (TQO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "ACA Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "HMO Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "MTY Terminal A", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "VER Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "MRO QRO", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "TELVISTA Centro Historico", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "TELVISTA Valle", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "Teleperformance Argento", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "Teleperformance Centauro", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "Puebla", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 1", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 2", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 3", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "AWS Dallas", "localidad": "DC Equinix Dallas TX USA", "esquema": "Stand Alone", "fecha_propuesta": "13-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "AWS Ashburn", "localidad": "DC Equinix Ashburn Virginia EE.UU", "esquema": "Stand Alone", "fecha_propuesta": "13-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo/Data Center", "pais": "Mexico", "sigla": "CECAM DC", "localidad": "CECAM", "esquema": "HA", "fecha_propuesta": "14-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "IAD", "localidad": "Washington (IAD)", "esquema": "Stand Alone", "fecha_propuesta": "16-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "RDU", "localidad": "Raleigh (RDU)", "esquema": "Stand Alone", "fecha_propuesta": "27-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Inglaterra", "sigla": "LHR", "localidad": "London (LHR)", "esquema": "Stand Alone", "fecha_propuesta": "29-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "TPA", "localidad": "Tampa (TPA)", "esquema": "Stand Alone", "fecha_propuesta": "04-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Panama", "sigla": "PTY", "localidad": "Panama (PTY)", "esquema": "Stand Alone", "fecha_propuesta": "05-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SFO", "localidad": "San Francisco (SFO)", "esquema": "HA", "fecha_propuesta": "05-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "EWR", "localidad": "Newark (EWR)", "esquema": "Stand Alone", "fecha_propuesta": "07-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Chile", "sigla": "SCL", "localidad": "Santiago De Chile (SCL)", "esquema": "Stand Alone", "fecha_propuesta": "13-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "PHX", "localidad": "Phoenix (PHX)", "esquema": "Stand Alone", "fecha_propuesta": "14-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SAT", "localidad": "San Antonio (SAT)", "esquema": "HA", "fecha_propuesta": "21-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DEN", "localidad": "Denver (DEN)", "esquema": "HA", "fecha_propuesta": "22-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Italia", "sigla": "FCO", "localidad": "Roma (FCO)", "esquema": "Stand Alone", "fecha_propuesta": "25-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "PHL", "localidad": "Philadelphia (PHL)", "esquema": "Stand Alone", "fecha_propuesta": "28-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Rep. Dominicana", "sigla": "PUJ", "localidad": "Punta Cana (PUJ)", "esquema": "Stand Alone", "fecha_propuesta": "01-jun-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}]
+[{"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "LAS", "localidad": "Las Vegas (LAS)", "esquema": "HA", "fecha_propuesta": "19-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MCO", "localidad": "Orlando (MCO)", "esquema": "HA", "fecha_propuesta": "19-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DTW", "localidad": "Detroit (DTW)", "esquema": "HA", "fecha_propuesta": "24-jun-26", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "JFK", "localidad": "Nueva York (JFK)", "esquema": "HA", "fecha_propuesta": "22-25 jun", "estatus": "Listo para programar", "fecha_envio": "", "lote": "", "dependencia": "Dependencia de AMX, no tiene UTM ni enlace de internet"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MIA", "localidad": "Miami (MIA)", "esquema": "HA", "fecha_propuesta": "24-jun-26", "estatus": "Listo para programar", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "IAH", "localidad": "Houston (IAH)", "esquema": "HA", "fecha_propuesta": "25-26 jun", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "LAX", "localidad": "Los Angeles (LAX)", "esquema": "HA", "fecha_propuesta": "23-26 jun", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": "Sin enlace, pendiente la cross"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YYZ", "localidad": "Toronto (YYZ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "09-jun-26", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YUL", "localidad": "Montreal (YUL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.1", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "CLO", "localidad": "Cali (CLO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.2", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Internacional", "pais": "USA", "sigla": "MIA CARGO", "localidad": "Miami (MIA CARGO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.3", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "San Salvador", "sigla": "SAL", "localidad": "San Salvador (SAL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.4", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Rep. Dominicana", "sigla": "SDQ", "localidad": "Santo Domingo (SDQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.5", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "CTG", "localidad": "Cartagena (CTG)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Equipo en transito", "fecha_envio": "16-jun-26", "lote": "1.6", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SMF", "localidad": "Sacramento (SMF)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo extraviado, se repondra con otro equipo"}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "BOS", "localidad": "Boston (BOS)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo retornado a Mexico por 3 intentos fallidos de entrega"}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ATL", "localidad": "Atlanta (ATL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Equipo debe ser movilizado dentro del ATO a otro sitio"}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SEA", "localidad": "Seattle (SEA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "Dependencia de AMX, no tiene UTM ni enlace de internet"}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DFW", "localidad": "Dallas (DFW)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "Dependencia", "fecha_envio": "", "lote": "", "dependencia": "19-may-2026: Ventana cancelada. Dependencia de tercero AMX, quien administra el switch (Mac Address casada)"}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Canada", "sigla": "YVR", "localidad": "Vancouver (YVR)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": "Estamos ocupando para la revision con el TAC para el laboratorio de conexion a Prisma Access"}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TIJ", "localidad": "Tijuana (TIJ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "BOG", "localidad": "Bogota (BOG)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ORD", "localidad": "Chicago (ORD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Costa Rica", "sigla": "SJO", "localidad": "Costa Rica (SJO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Guatemala", "sigla": "GUA", "localidad": "Guatemala (GUA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Peru", "sigla": "LIM", "localidad": "Lima (LIM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Brazil", "sigla": "GRU", "localidad": "Sao Paulo (GRU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Ecuador", "sigla": "MGA", "localidad": "Managua (MGA)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Colombia", "sigla": "MDE", "localidad": "Medellin (MDE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Honduras", "sigla": "SAP", "localidad": "San Pedro Sula (SAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Corea del Sur", "sigla": "ICN", "localidad": "Seul (ICN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "En preconfiguracion", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "AICM T2", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "MAPFRE", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "HANGAR MEX", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "HANGAR ORIENTE", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "CARGO CORP", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "FORMACION", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Data center", "pais": "Mexico", "sigla": "", "localidad": "TULTITLAN", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo", "pais": "Mexico", "sigla": "", "localidad": "OCC", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AICM T1", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AIFA", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "Aduana", "localidad": "Almacen 16 (Aduana)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "BJX", "localidad": "Bajio (BJX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUN", "localidad": "Cancun (CUN)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "CCC", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUU", "localidad": "Chihuahua (CUU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "GDL", "localidad": "Guadalajara (GDL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "GDL", "localidad": "Guadalajara (GDL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "HMO", "localidad": "Hermosillo (HMO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MID", "localidad": "Merida (MID)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MID", "localidad": "Merida (MID)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Monterrey Terminal A", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MTY", "localidad": "Monterrey (MTY)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "OAX", "localidad": "Oaxaca (OAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "PVR", "localidad": "Puerto Vallarta (PVR)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "SJD", "localidad": "San Jose Del Cabo (SJD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "Sarabia", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "AICM", "localidad": "Seneam (AICM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TIJ", "localidad": "Tijuana (TIJ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TGZ", "localidad": "Tuxtla Gutierrez (TGZ)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "VER", "localidad": "Veracruz (VER)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "VSA", "localidad": "Villahermosa (VSA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ACA", "localidad": "Acapulco (ACA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "AGU", "localidad": "Aguascalientes (AGU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CJS", "localidad": "Ciudad Juarez (CJS)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "HUX", "localidad": "Huatulco (HUX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MXL", "localidad": "Mexicali (MXL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "SLP", "localidad": "San Luis Potosi (SLP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TRC", "localidad": "Torreon (TRC)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "HMO", "localidad": "Hermosillo (HMO)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUN", "localidad": "Cancun (CUN)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AEROMEXICO GDL HANGAR GUSANO BARRENADOR", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "AEROMEXICO GDL NVO HANGAR DE MANTO", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MTY", "localidad": "Monterrey (MTY) Hangar", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CJS", "localidad": "Ciudad Juarez (CJS)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CME", "localidad": "Ciudad del Carmen (CME)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUL", "localidad": "Culiacan (CUL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CUU", "localidad": "Chihuahua (CUU)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "LAP", "localidad": "La Paz (LAP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "LMM", "localidad": "Los Mochis (LMM)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MXL", "localidad": "Mexicali (MXL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MZT", "localidad": "Mazatlan (MZT)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "OAX", "localidad": "Oaxaca (OAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "REX", "localidad": "Reynosa (REX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "SJD", "localidad": "San Jose del Cabo (SJD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TAP", "localidad": "Tapachula (TAP)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "VSA", "localidad": "Villahermosa (VSA)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "ZIH", "localidad": "Zihuatanejo (ZIH)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CPE", "localidad": "Campeche (CPE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CPE", "localidad": "Campeche (CPE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CTM", "localidad": "Chetumal (CTM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CME", "localidad": "Ciudad Del Carmen (CME)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "CEN", "localidad": "Ciudad Obregon (CEN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CEN", "localidad": "Ciudad Obregon (CEN)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CLQ", "localidad": "Colima (CLQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CUL", "localidad": "Culiacan (CUL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "DGO", "localidad": "Durango (DGO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "DGO", "localidad": "Durango (DGO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "LAP", "localidad": "La Paz (LAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "LMM", "localidad": "Los Mochis (LMM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZLO", "localidad": "Manzanillo (ZLO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MAM", "localidad": "Matamoros (MAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MZT", "localidad": "Mazatlan (MZT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "MTT", "localidad": "Minatitlan (MTT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MTT", "localidad": "Minatitlan (MTT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "MLM", "localidad": "Morelia (MLM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "NLD", "localidad": "Nuevo Laredo (NLD)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "PXM", "localidad": "Puerto Escondido (PXM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "QRO", "localidad": "Queretaro (QRO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "QRO", "localidad": "Queretaro (QRO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "REX", "localidad": "Reynosa (REX)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TAM", "localidad": "Tampico (TAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TAM", "localidad": "Tampico (TAM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TAP", "localidad": "Tapachula (TAP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TPQ", "localidad": "Tepic (TPQ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZIH", "localidad": "Zihuatanejo (ZIH)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "CDMX Gustavo Baz", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "BJX", "localidad": "Bajio (BJX)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "PVR", "localidad": "Puerto Vallarta (PVR)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TGZ", "localidad": "Tuxtla Gutierrez (TGZ)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "VER", "localidad": "Veracruz (VER)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "AGU", "localidad": "Aguascalientes (AGU)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "SLP", "localidad": "San Luis Potosi (SLP)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "TRC", "localidad": "Torreon (TRC)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "", "localidad": "DC AWS West 2", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "", "localidad": "DC AWS East 1", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "Espana", "sigla": "MAD", "localidad": "Madrid (MAD)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Holanda", "sigla": "AMS", "localidad": "Amsterdam (AMS)(SPL)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Argentina", "sigla": "EZE", "localidad": "Buenos Aires (EZE)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "Francia", "sigla": "CDG", "localidad": "Paris (CDG)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "Cargo Internacional", "pais": "USA", "sigla": "LAX", "localidad": "Los Angeles (LAX)", "esquema": "HA", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "AUS", "localidad": "Austin (AUS)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "FAT", "localidad": "Fresno (FAT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Cuba", "sigla": "HAV", "localidad": "La Habana (HAV)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "MFE", "localidad": "Mc Allen (MFE)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Japon", "sigla": "NRT", "localidad": "Narita (NRT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "ONT", "localidad": "Ontario (ONT)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SLC", "localidad": "Salt Lake City (SLC)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Puerto Rico", "sigla": "SJU", "localidad": "San Juan (SJU)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "CZM", "localidad": "Cozumel (CZM)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "ZCL", "localidad": "Zacatecas (ZCL)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "TQO", "localidad": "Tulum (TQO)", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "ACA Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "HMO Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "MTY Terminal A", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "VER Mtto", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "MRO QRO", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "TELVISTA Centro Historico", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "TELVISTA Valle", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "Teleperformance Argento", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Contact Center", "pais": "Mexico", "sigla": "", "localidad": "Teleperformance Centauro", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "Cargo Nacional", "pais": "Mexico", "sigla": "", "localidad": "Puebla", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 1", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 2", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Nacional", "pais": "Mexico", "sigla": "", "localidad": "Emergencia 3", "esquema": "Stand Alone", "fecha_propuesta": "", "estatus": "No iniciado", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "AWS Dallas", "localidad": "DC Equinix Dallas TX USA", "esquema": "Stand Alone", "fecha_propuesta": "13-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Cloud", "pais": "USA", "sigla": "AWS Ashburn", "localidad": "DC Equinix Ashburn Virginia EE.UU", "esquema": "Stand Alone", "fecha_propuesta": "13-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "0", "tipo": "Corporativo/Data Center", "pais": "Mexico", "sigla": "CECAM DC", "localidad": "CECAM", "esquema": "HA", "fecha_propuesta": "14-mar-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "IAD", "localidad": "Washington (IAD)", "esquema": "Stand Alone", "fecha_propuesta": "16-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "RDU", "localidad": "Raleigh (RDU)", "esquema": "Stand Alone", "fecha_propuesta": "27-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Inglaterra", "sigla": "LHR", "localidad": "London (LHR)", "esquema": "Stand Alone", "fecha_propuesta": "29-abr-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "TPA", "localidad": "Tampa (TPA)", "esquema": "Stand Alone", "fecha_propuesta": "04-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Panama", "sigla": "PTY", "localidad": "Panama (PTY)", "esquema": "Stand Alone", "fecha_propuesta": "05-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "1", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SFO", "localidad": "San Francisco (SFO)", "esquema": "HA", "fecha_propuesta": "05-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "EWR", "localidad": "Newark (EWR)", "esquema": "Stand Alone", "fecha_propuesta": "07-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Chile", "sigla": "SCL", "localidad": "Santiago De Chile (SCL)", "esquema": "Stand Alone", "fecha_propuesta": "13-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "PHX", "localidad": "Phoenix (PHX)", "esquema": "Stand Alone", "fecha_propuesta": "14-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "SAT", "localidad": "San Antonio (SAT)", "esquema": "HA", "fecha_propuesta": "21-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "2", "tipo": "ATO Internacional", "pais": "USA", "sigla": "DEN", "localidad": "Denver (DEN)", "esquema": "HA", "fecha_propuesta": "22-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Italia", "sigla": "FCO", "localidad": "Roma (FCO)", "esquema": "Stand Alone", "fecha_propuesta": "25-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "USA", "sigla": "PHL", "localidad": "Philadelphia (PHL)", "esquema": "Stand Alone", "fecha_propuesta": "28-may-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}, {"tier": "3", "tipo": "ATO Internacional", "pais": "Rep. Dominicana", "sigla": "PUJ", "localidad": "Punta Cana (PUJ)", "esquema": "Stand Alone", "fecha_propuesta": "01-jun-26", "estatus": "Exitosa", "fecha_envio": "", "lote": "", "dependencia": ""}]
 </script>
 
 <script>
@@ -851,6 +943,8 @@ let columnFilters = {};
 FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
 let openAutofilterCol = null;
 let autofilterOpenedAt = 0;
+let tableSortCol = null;   // columna activa de ordenamiento
+let tableSortDir = 'asc'; // 'asc' | 'desc'
 
 const STATUS_COLORS = {
   'Exitosa': '#1FA97C',
@@ -858,8 +952,9 @@ const STATUS_COLORS = {
   'Listo para embarcar': '#7D3C98',
   'Programada': '#E67E22',
   'Equipo en transito': '#F2A93B',
-  'En preconfiguración': '#4A6CF7',
+  'En preconfiguracion': '#4A6CF7',
   'Dependencia': '#E0483E',
+  'Fallida': '#C0392B',
   'Impl. Cancelada': '#717D7E',
   'No iniciado': '#A9B2C3'
 };
@@ -869,12 +964,13 @@ const STATUS_LABELS = {
   'Listo para embarcar':'Listo p/ embarcar',
   'Programada':'Programada',
   'Equipo en transito':'En tránsito',
-  'En preconfiguración':'Preconfiguración',
+  'En preconfiguracion':'Preconfiguración',
   'Dependencia':'Dependencia (riesgo)',
+  'Fallida':'Fallida',
   'Impl. Cancelada':'Impl. Cancelada',
   'No iniciado':'No iniciado'
 };
-const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguración','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Fallida','Impl. Cancelada','No iniciado'];
 
 // Required columns expected in an uploaded Excel/CSV
 const REQUIRED_COLS = ['tier','tipo','pais','sigla','localidad','esquema','fecha_propuesta','estatus','fecha_envio','lote','dependencia'];
@@ -941,8 +1037,9 @@ function statusTagClass(s){
     case 'Listo para embarcar': return 'embarcar';
     case 'Programada': return 'programada';
     case 'Equipo en transito': return 'transito';
-    case 'En preconfiguración': return 'progreso';
+    case 'En preconfiguracion': return 'progreso';
     case 'Dependencia': return 'riesgo';
+    case 'Fallida': return 'fallida';
     case 'Impl. Cancelada': return 'cancelada';
     default: return 'pendiente';
   }
@@ -1001,10 +1098,11 @@ function renderKPIs(filtered){
   const byStatus = countBy(filtered, 'estatus');
   const exitosa = byStatus['Exitosa']||0;
   const enTransito = byStatus['Equipo en transito']||0;
-  const enPreconfig = byStatus['En preconfiguración']||0;
+  const enPreconfig = byStatus['En preconfiguracion']||0;
   const listoProgramar = byStatus['Listo para programar']||0;
   const listoEmbarcar = byStatus['Listo para embarcar']||0;
   const programada = byStatus['Programada']||0;
+  const fallida = byStatus['Fallida']||0;
   const enProgreso = enTransito + enPreconfig + listoProgramar + listoEmbarcar;
   const noIniciado = byStatus['No iniciado']||0;
   const riesgo = byStatus['Dependencia']||0;
@@ -1032,6 +1130,8 @@ function renderKPIs(filtered){
   document.getElementById('kpiRiesgo').textContent = riesgo;
   document.getElementById('kpiProgramada').textContent = programada;
   safeSetText('kpiProgramadaSub', total>0 ? ((programada/total)*100).toFixed(1)+'% del total' : '—');
+  document.getElementById('kpiFallida').textContent = fallida;
+  safeSetText('kpiFallidaSub', total>0 ? ((fallida/total)*100).toFixed(1)+'% del total' : '—');
 
   if(lastSite){
     safeSetText('kpiLastSite', lastSite.sigla || lastSite.localidad);
@@ -1169,7 +1269,7 @@ function renderProjectionChart(filtered){
 
   const totalSitios = filtered.length;
   const totalCompletados = exitosos.length;
-  const pendientes = filtered.filter(r=>r.estatus !== 'Exitosa').length;
+  const pendientes = filtered.filter(r=>r.estatus !== 'Exitosa' && r.estatus !== 'Impl. Cancelada').length;
 
   document.getElementById('projPending').textContent = pendientes;
 
@@ -1200,9 +1300,6 @@ function renderProjectionChart(filtered){
       document.getElementById('projectionNote').textContent =
         `Proyección SIMULADA desde hoy: este filtro no tiene suficientes migraciones exitosas con fecha para construir una tendencia histórica, así que la estimación parte de ${pendientes} sitio(s) pendientes a la fecha de hoy, asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'}.`;
 
-      const badge = document.getElementById('simStatusBadge');
-      badge.textContent = `Simulando ${manualRateOverride.value}/${manualRateOverride.unit==='week'?'semana':'mes'} (desde hoy)`;
-      badge.className = 'sim-status simulated';
       document.getElementById('projLegendDot').style.background = '#F2A93B';
       document.getElementById('projLegendText').textContent = 'Proyección (ritmo simulado desde hoy)';
       return;
@@ -1213,9 +1310,6 @@ function renderProjectionChart(filtered){
     document.getElementById('projEtaSub').textContent = 'se requieren ≥2 migraciones exitosas con fecha';
     document.getElementById('projWeeksLeft').textContent = '—';
     document.getElementById('projectionNote').textContent = 'No hay suficientes migraciones exitosas con fecha para calcular una tendencia histórica con este filtro. Puedes usar el simulador de ritmo manual para proyectar una fecha de conclusión desde hoy.';
-    const badge = document.getElementById('simStatusBadge');
-    badge.textContent = 'Usando datos históricos';
-    badge.className = 'sim-status historic';
     return;
   }
 
@@ -1236,15 +1330,25 @@ function renderProjectionChart(filtered){
     return {x: idx, y: cum, count: buckets[k].count, label: buckets[k].label};
   });
 
-  // --- Linear regression on cumulative real points ---
-  const reg = linearRegression(realPoints.map(p=>({x:p.x, y:p.y})));
+  // --- Historic rate: simple average = total exitosos / weeks elapsed from first to last implementation ---
+  // This matches the standard project management calculation and avoids regression bias.
+  const firstDate = exitosos[0].d;
+  const lastDate  = exitosos[exitosos.length - 1].d;
+  const hoyMs     = Date.now();
+  // Use the later of: last implementation date OR today, so that idle weeks since
+  // the last migration count against the rate (matching standard PMO calculation).
+  const endMs      = Math.max(lastDate.getTime(), hoyMs);
+  const msDiff     = endMs - firstDate.getTime();
+  const weeksElapsed = msDiff / (7 * 86400000);
 
-  // Historic rate per period (sitios / periodo) — prefer regression slope if it's positive & sane, else simple average
-  let historicRatePerPeriod = reg && reg.slope > 0 ? reg.slope : (totalCompletados / bucketKeys.length);
-  if(!isFinite(historicRatePerPeriod) || historicRatePerPeriod <= 0) historicRatePerPeriod = 0;
+  // Use weeks-elapsed denominator; fall back to bucket count if only 1 unique date
+  const denomWeeks = weeksElapsed > 0 ? weeksElapsed : bucketKeys.length;
+  let historicWeeklyRate = totalCompletados / denomWeeks;
+  if(!isFinite(historicWeeklyRate) || historicWeeklyRate <= 0) historicWeeklyRate = 0;
 
-  // Average weekly rate (used to convert manual input regardless of unit) ~4.345 weeks/month
-  const historicWeeklyRate = projectionGranularity === 'week' ? historicRatePerPeriod : historicRatePerPeriod / 4.345;
+  let historicRatePerPeriod = projectionGranularity === 'week'
+    ? historicWeeklyRate
+    : historicWeeklyRate * 4.345;
 
   let ratePerPeriod;
   let isSimulated = false;
@@ -1334,17 +1438,16 @@ function renderProjectionChart(filtered){
   }
 
   document.getElementById('projectionNote').textContent = isSimulated
-    ? `Proyección SIMULADA: asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'} (ingresado manualmente), partiendo de los ${totalCompletados} sitios ya completados de ${totalSitios} en alcance. El ritmo histórico real es de ${historicRatePerPeriod.toFixed(1)}/${periodLabel}. Usa "Volver a tendencia histórica" para regresar al cálculo basado en datos reales.`
-    : `Cálculo basado en regresión lineal sobre ${bucketKeys.length} periodo(s) con migraciones exitosas registradas (${totalCompletados} de ${totalSitios} sitios completados a la fecha). La proyección asume que el ritmo de migración se mantiene constante; bloqueos o aceleraciones futuras pueden modificar esta estimación.`;
+    ? `Proyección SIMULADA: asumiendo un ritmo constante de ${manualRateOverride.value} sitio(s) por ${manualRateOverride.unit === 'week' ? 'semana' : 'mes'} (ingresado manualmente), partiendo de los ${totalCompletados} sitios ya completados de ${totalSitios} en alcance. El ritmo histórico real es de ${historicRatePerPeriod.toFixed(2)}/${periodLabel}. Usa "Volver a tendencia histórica" para regresar al cálculo basado en datos reales.`
+    : `Cálculo basado en promedio simple: ${totalCompletados} migraciones exitosas registradas en ${weeksElapsed.toFixed(1)} semanas (desde ${exitosos[0].fecha_propuesta} hasta ${exitosos[exitosos.length-1].fecha_propuesta}). La proyección asume que el ritmo de migración se mantiene constante; bloqueos o aceleraciones futuras pueden modificar esta estimación.`;
 
-  // sim status badge
-  const badge = document.getElementById('simStatusBadge');
+  // Update projection legend
   if(isSimulated){
-    badge.textContent = `Simulando ${manualRateOverride.value}/${manualRateOverride.unit==='week'?'semana':'mes'}`;
-    badge.className = 'sim-status simulated';
+    document.getElementById('projLegendDot').style.background = '#F2A93B';
+    document.getElementById('projLegendText').textContent = 'Proyección (ritmo simulado)';
   } else {
-    badge.textContent = 'Usando datos históricos';
-    badge.className = 'sim-status historic';
+    document.getElementById('projLegendDot').style.background = '#00AEEF';
+    document.getElementById('projLegendText').textContent = 'Proyección (tendencia histórica)';
   }
   document.getElementById('projLegendDot').style.background = isSimulated ? '#F2A93B' : '#00AEEF';
   document.getElementById('projLegendText').textContent = isSimulated ? 'Proyección (ritmo simulado)' : 'Proyección (tendencia lineal)';
@@ -1459,6 +1562,14 @@ document.querySelectorAll('.sim-unit').forEach(btn=>{
   });
 });
 
+function closeSimResult(){
+  document.getElementById('simResultPanel').style.display = 'none';
+  manualRateOverride = null;
+  document.getElementById('manualRateInput').value = '';
+  document.getElementById('manualRateInput').style.borderColor = '';
+  renderProjectionChart(getFilteredData());
+}
+
 document.getElementById('applyManualRateBtn').addEventListener('click', ()=>{
   const input = document.getElementById('manualRateInput');
   const val = parseFloat(input.value);
@@ -1469,21 +1580,35 @@ document.getElementById('applyManualRateBtn').addEventListener('click', ()=>{
   }
   input.style.borderColor = '';
   manualRateOverride = {value: val, unit: manualRateUnit};
-  renderProjectionChart(getFilteredData());
+
+  // Compute sim projection KPIs
+  const filtered = getFilteredData();
+  const pendientes = filtered.filter(r=>r.estatus!=='Exitosa' && r.estatus!=='Impl. Cancelada' && r.estatus!=='Fallida').length;
+  const weeklyRate = manualRateUnit === 'week' ? val : val / 4.345;
+  const weeksLeft  = pendientes / weeklyRate;
+  const hoy = new Date();
+  const eta = new Date(hoy.getTime() + weeksLeft * 7 * 86400000);
+  const etaStr = eta.toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'});
+
+  // Populate sim result panel
+  document.getElementById('simResRate').textContent = val.toFixed(2);
+  document.getElementById('simResRateSub').textContent = 'sitios / ' + (manualRateUnit==='week' ? 'semana' : 'mes');
+  document.getElementById('simResPending').textContent = pendientes;
+  document.getElementById('simResEta').textContent = etaStr;
+  document.getElementById('simResEtaSub').textContent = `≈ ${Math.round(weeksLeft)} sem · ≈ ${Math.round(weeksLeft/4.345)} meses`;
+  document.getElementById('simResWeeks').textContent = Math.round(weeksLeft);
+  document.getElementById('simResultPanel').style.display = '';
+
+  renderProjectionChart(filtered);
 });
+
+document.getElementById('simResultClose').addEventListener('click', closeSimResult);
 
 document.getElementById('manualRateInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){
     e.preventDefault();
     document.getElementById('applyManualRateBtn').click();
   }
-});
-
-document.getElementById('resetTrendBtn').addEventListener('click', ()=>{
-  manualRateOverride = null;
-  document.getElementById('manualRateInput').value = '';
-  document.getElementById('manualRateInput').style.borderColor = '';
-  renderProjectionChart(getFilteredData());
 });
 
 function renderTrendChart(filtered){
@@ -1794,6 +1919,32 @@ function renderRiskList(filtered){
   }
 }
 
+function renderFallidaList(filtered){
+  const container = document.getElementById('fallidaList');
+  const panel = document.getElementById('fallidasPanel');
+  container.innerHTML = '';
+  const fallidas = filtered.filter(r => r.estatus === 'Fallida');
+  panel.style.display = fallidas.length === 0 ? 'none' : '';
+  if(fallidas.length === 0) return;
+  fallidas.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'risk-card';
+    card.style.cssText = 'border-left-color:#C0392B;background:#FDF2F0;';
+    card.innerHTML = `
+      <div class="site">
+        <span><strong>${r.sigla||r.localidad}</strong>${r.sigla && r.localidad ? ' — '+r.localidad : ''}</span>
+        <span class="tag fallida">Tier ${r.tier||'—'}</span>
+      </div>
+      <div class="reason">
+        ${r.pais ? r.pais+' · ' : ''}${r.tipo||''}<br>
+        ${r.fecha_propuesta ? 'Ventana: '+r.fecha_propuesta : ''}
+        ${r.dependencia ? '<br>'+r.dependencia : ''}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
 // ============================================================
 // SLA DHL — Equipos en tránsito
 // ============================================================
@@ -1920,6 +2071,41 @@ function renderTable(filtered){
     );
   }
   rows = applyColumnFilters(rows, null);
+
+  // Apply sort
+  if(tableSortCol){
+    rows = [...rows].sort((a, b)=>{
+      let va = getColumnDisplayValue(a, tableSortCol);
+      let vb = getColumnDisplayValue(b, tableSortCol);
+      // Numeric sort for tier
+      if(tableSortCol === 'tier'){
+        va = parseFloat(va) || 0;
+        vb = parseFloat(vb) || 0;
+        return tableSortDir === 'asc' ? va - vb : vb - va;
+      }
+      // Date sort for fecha_propuesta
+      if(tableSortCol === 'fecha_propuesta'){
+        const da = parseFecha(va), db = parseFecha(vb);
+        if(!da && !db) return 0;
+        if(!da) return 1; if(!db) return -1;
+        return tableSortDir === 'asc' ? da - db : db - da;
+      }
+      // String sort
+      const cmp = va.localeCompare(vb, 'es', {numeric:true, sensitivity:'base'});
+      return tableSortDir === 'asc' ? cmp : -cmp;
+    });
+  }
+
+  // Update sort button visual state
+  document.querySelectorAll('.sort-btn').forEach(btn=>{
+    const col = btn.dataset.sort;
+    btn.className = 'sort-btn' + (tableSortCol===col ? ' '+tableSortDir : '');
+    btn.innerHTML = tableSortCol===col
+      ? (tableSortDir==='asc' ? '<span class="sort-up">▲</span><span class="sort-down" style="opacity:.3">▼</span>'
+                               : '<span class="sort-up" style="opacity:.3">▲</span><span class="sort-down">▼</span>')
+      : '▲▼';
+  });
+
   updateAutofilterButtonStates();
 
   if(rows.length === 0){
@@ -2022,6 +2208,18 @@ function openAutofilterPanel(col, btnEl){
 }
 
 document.getElementById('tableHeadRow').addEventListener('click', (e)=>{
+  const sortBtn = e.target.closest('.sort-btn');
+  if(sortBtn){
+    const col = sortBtn.dataset.sort;
+    if(tableSortCol === col){
+      tableSortDir = tableSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      tableSortCol = col;
+      tableSortDir = 'asc';
+    }
+    renderTable(getFilteredData());
+    return;
+  }
   const btn = e.target.closest('.autofilter-btn');
   if(!btn) return;
   e.stopPropagation();
@@ -2040,7 +2238,7 @@ window.addEventListener('scroll', (e)=>{
 window.addEventListener('resize', closeAutofilterPanel);
 
 // Order in which status filter buttons are displayed (excluding "Todos", added first)
-const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguración','Dependencia','Impl. Cancelada','No iniciado'];
+const STATUS_FILTER_ORDER = ['Exitosa','Listo para programar','Listo para embarcar','Programada','Equipo en transito','En preconfiguracion','Dependencia','Fallida','Impl. Cancelada','No iniciado'];
 
 function renderStatusFilterBar(filtered){
   const bar = document.getElementById('statusFilterBar');
@@ -2097,6 +2295,7 @@ function renderAll(){
   renderEsquemaChart(filtered);
   renderPaisChart(filtered);
   renderRiskList(filtered);
+  renderFallidaList(filtered);
   renderSlaDhl(filtered);
   renderStatusFilterBar(filtered);
   renderTable(filtered);
@@ -2187,7 +2386,15 @@ function rowsFromSheetJson(jsonRows){
       }
     });
     return out;
-  }).filter(r => r.localidad || r.sigla); // discard fully empty rows
+  }).filter(r => {
+    // Must have at minimum sigla or localidad with actual text
+    if(!r.sigla && !r.localidad) return false;
+    // Exclude rows where sigla/localidad look like header text
+    const sigLow = (r.sigla||'').toLowerCase();
+    const locLow = (r.localidad||'').toLowerCase();
+    if(sigLow === 'sigla' || locLow === 'localidad' || sigLow === '#' || locLow === '#') return false;
+    return true;
+  });
 }
 
 function handleExcelFile(file){
@@ -2217,13 +2424,8 @@ function handleExcelFile(file){
       currentStatusFilter = 'all';
       currentSearch = '';
       manualRateOverride = null;
+      document.getElementById('simResultPanel').style.display = 'none';
       FILTERABLE_COLUMNS.forEach(c => columnFilters[c] = null);
-      closeAutofilterPanel();
-      document.getElementById('manualRateInput').value = '';
-      document.getElementById('searchBox').value = '';
-
-      safeSetText('excelFileName', file.name);
-      showUploadStatus(`✅ Base de datos actualizada: ${parsed.length} sitios cargados desde "${file.name}".`, false);
 
       renderAll();
     }catch(err){
@@ -2306,3 +2508,114 @@ loadFromPath(BD_PATH);
 </script>
 </body>
 </html>
+
+<!-- Appended: PDF generation and sim refactor JS -->
+<script>
+// ============================================================
+// GENERAR REPORTE PDF
+// ============================================================
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    if(document.querySelector(`script[src="${src}"]`)){resolve();return;}
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+document.getElementById('btnGenerarPDF').addEventListener('click', async ()=>{
+  const btn = document.getElementById('btnGenerarPDF');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const { jsPDF } = window.jspdf;
+
+    const pageW=210, pageH=297, marginTop=38, marginBottom=18, marginLR=10;
+    const contentW=pageW-marginLR*2, contentH=pageH-marginTop-marginBottom;
+
+    const now = new Date();
+    const fechaArchivo = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+    const fechaHoraReporte = now.toLocaleString('es-MX',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const fileName = `${fechaArchivo}-AMX-17471-Reporte estatus migración.pdf`;
+
+    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+
+    // Hide interactive elements
+    const toHide = document.querySelectorAll('#excelInput, label[for="excelInput"], #btnGenerarPDF, #resetDataBtn, .autofilter-panel, .af-list');
+    toHide.forEach(el=>el.style.visibility='hidden');
+
+    const canvas = await html2canvas(document.body, {
+      scale: 1.5, useCORS:true, allowTaint:true,
+      scrollX:0, scrollY:0,
+      windowWidth: document.body.scrollWidth,
+      windowHeight: document.body.scrollHeight
+    });
+
+    toHide.forEach(el=>el.style.visibility='');
+
+    const imgW=canvas.width;
+    const imgH=canvas.height;
+    const pxPerMm = imgW / contentW;
+    const sliceHpx = Math.floor(contentH * pxPerMm);
+
+    const drawHeader = (pNum)=>{
+      pdf.setFillColor(0,51,160);
+      pdf.rect(0,0,pageW,28,'F');
+      pdf.setTextColor(255,255,255);
+      pdf.setFontSize(13); pdf.setFont('helvetica','bold');
+      pdf.text('SCITUM', 12, 11);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente: Aeroméxico', 12, 16);
+      pdf.text('Proyecto: 17471 – SDWAN', 12, 20.5);
+      pdf.text('Reporte de estatus de implementación', 12, 25);
+      pdf.setTextColor(190,215,255);
+      pdf.setFontSize(7.5);
+      pdf.text(`Generado: ${fechaHoraReporte}`, pageW/2, 14, {align:'center'});
+      pdf.setTextColor(255,255,255);
+      pdf.setFontSize(12); pdf.setFont('helvetica','bold');
+      pdf.text('Aeroméxico', pageW-12, 11, {align:'right'});
+      pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('Cliente', pageW-12, 16, {align:'right'});
+      pdf.setDrawColor(0,174,239); pdf.setLineWidth(0.8);
+      pdf.line(0,28,pageW,28);
+      pdf.setTextColor(150,150,150); pdf.setFontSize(7);
+      pdf.text(`Pág. ${pNum}`, pageW-12, 34, {align:'right'});
+    };
+
+    const drawFooter = ()=>{
+      pdf.setDrawColor(210,210,210); pdf.setLineWidth(0.3);
+      pdf.line(marginLR, pageH-14, pageW-marginLR, pageH-14);
+      pdf.setTextColor(130,130,130); pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+      pdf.text('© 2026 Copyright - Scitum, S.A. de C.V. Todos los derechos reservados', pageW/2, pageH-9, {align:'center'});
+    };
+
+    let sliceY=0, pageNum=1;
+    while(sliceY < imgH){
+      if(pageNum > 1) pdf.addPage();
+      drawHeader(pageNum);
+      drawFooter();
+
+      const sliceH = Math.min(sliceHpx, imgH-sliceY);
+      const sc = document.createElement('canvas');
+      sc.width=imgW; sc.height=sliceH;
+      sc.getContext('2d').drawImage(canvas, 0,sliceY, imgW,sliceH, 0,0, imgW,sliceH);
+      pdf.addImage(sc.toDataURL('image/jpeg',0.88), 'JPEG', marginLR, marginTop, contentW, sliceH/pxPerMm);
+
+      sliceY += sliceHpx;
+      pageNum++;
+    }
+
+    pdf.save(fileName);
+  } catch(err){
+    alert('Error al generar el PDF: ' + err.message);
+    console.error(err);
+  } finally {
+    btn.disabled=false;
+    btn.textContent='📄 Generar reporte';
+  }
+});
+</script>
